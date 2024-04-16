@@ -10,11 +10,6 @@ const path = require("path");
 const PDFParser = require('pdf-parse');
 const OpenAI = require("openai");
 const retry2 = require("async-retry");
-const pdf2html = require('pdf2html');
-const jsonData = require("./data");
-// const pdfjs = require('pdfjs-dist');
-// import pdfjs from "pdfjs-dist"
-
 const cheerio = require('cheerio');
 const app = express();
 const PORT = process.env.PORT || 9000;
@@ -26,7 +21,7 @@ app.use(cookieParser());
 // Main Constants
 
 const OPEN_AI_INSTANCE = new OpenAI({
-   apiKey: "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",
+   apiKey: process.env.OPEN_AI_SECRETS
 });
 
 const delay = (ms = 2000) => new Promise(resolve => setTimeout(resolve, ms));
