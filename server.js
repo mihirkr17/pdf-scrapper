@@ -372,7 +372,7 @@ async function mainExc() {
                   const playerTwoUnderscore = playerTwo.replaceAll(" ", "_");
 
                   if (text) {
-                     const paraphrasedBlog = await paraphrasePdf(`Reword/Rephrase word by word using paragraphs "${text}"`);
+                     const paraphrasedBlog = text;// await paraphrasePdf(`Reword/Rephrase word by word using paragraphs "${text}"`);
                      const html = `
                      <div style="padding: 20px 0; margin-bottom: 50px">
                         <h3>${content?.eventName}</h3>
@@ -467,7 +467,7 @@ async function mainExc() {
 //    }
 // })();
 // main operation
-schedule.scheduleJob('* 5 * * *', async function () {
+schedule.scheduleJob('*/2 * * * *', async function () {
    try {
       console.log(new Date(), 'Every 5 minute.');
       const result = await mainExc();
