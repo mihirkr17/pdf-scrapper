@@ -234,18 +234,20 @@ async function mainExc() {
 //       console.log(error?.message);
 //    }
 // })();
+
+
 // main operation
-schedule.scheduleJob('*/6 * * * *', async function () {
-   try {
-      console.log(`${timeLogger()}: Main execution running every 5 minutes.`);
-      const result = await mainExc();
+// schedule.scheduleJob('*/6 * * * *', async function () {
+//    try {
+//       console.log(`${timeLogger()}: Main execution running every 5 minutes.`);
+//       const result = await mainExc();
 
-      console.log(`${timeLogger()}: ${result?.message}`);
+//       console.log(`${timeLogger()}: ${result?.message}`);
 
-   } catch (error) {
-      console.log(error?.message);
-   }
-});
+//    } catch (error) {
+//       console.log(error?.message);
+//    }
+// });
 
 // app.get("/get-pdf", (req, res) => {
 //    try {
@@ -255,6 +257,8 @@ schedule.scheduleJob('*/6 * * * *', async function () {
 
 //    }
 // });
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
    console.log(`Server running on PORT: ${PORT}`);
+   const result = await mainExc();
+   console.log(`${timeLogger()}: ${result?.message}`);
 })
