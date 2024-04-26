@@ -235,7 +235,7 @@ async function mainExc() {
 //    }
 // })();
 // main operation
-schedule.scheduleJob('*/10 * * * *', async function () {
+schedule.scheduleJob('*/6 * * * *', async function () {
    try {
       console.log(`${timeLogger()}: Main execution running every 5 minutes.`);
       const result = await mainExc();
