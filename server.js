@@ -42,9 +42,9 @@ async function mainExc() {
       }
 
       // Generating jwt token by username and password
-      const jwtData = await generateJwtToken();
+      // const jwtData = await generateJwtToken();
 
-      const token = jwtData?.token;
+      const token = "cm9vdDpAbWtyMTk5OHRlc3Qtd29yZHByZXNz";// jwtData?.token;
 
       if (!token) {
          throw new Error(`Sorry! Token not generated.`);
@@ -63,6 +63,7 @@ async function mainExc() {
       } else {
          categoryId = parseCategory?.id;
       }
+
 
       if (!categoryId || typeof categoryId !== "number") throw new Error("Sorry! category not found.");
 
@@ -258,7 +259,11 @@ async function mainExc() {
 //    }
 // });
 app.listen(PORT, async () => {
-   console.log(`Server running on PORT: ${PORT}`);
-   const result = await mainExc();
-   console.log(`${timeLogger()}: ${result?.message}`);
+   try {
+      console.log(`Server running on PORT: ${PORT}`);
+      const result = await mainExc();
+      console.log(`${timeLogger()}: ${result?.message}`);
+   } catch (error) {
+      console.log(error?.message);
+   }
 })

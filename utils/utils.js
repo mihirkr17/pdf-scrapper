@@ -156,7 +156,7 @@ async function makePostRequest(uri, body = {}, jwtToken) {
          method: "POST",
          headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${jwtToken}`
+            Authorization: `Basic ${jwtToken}`
          },
          body: JSON.stringify(body)
       });
@@ -311,7 +311,7 @@ const checkPostExists = async (title, token) => {
    const response = await fetch(uri, {
       method: "GET",
       headers: {
-         Authorization: `Bearer ${token}`
+         Authorization: `Basic ${token}`
       }
    });
    const posts = await response.json();
