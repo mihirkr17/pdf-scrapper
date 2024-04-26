@@ -44,7 +44,7 @@ async function mainExc() {
       // Generating jwt token by username and password
       // const jwtData = await generateJwtToken();
 
-      const token = "cm9vdDpAbWtyMTk5OHRlc3Qtd29yZHByZXNz";// jwtData?.token;
+      const token = process.env.REST_TOKEN; // "cm9vdDpAbWtyMTk5OHRlc3Qtd29yZHByZXNz";// jwtData?.token;
 
       if (!token) {
          throw new Error(`Sorry! Token not generated.`);
