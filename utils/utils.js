@@ -345,9 +345,13 @@ async function getPostTagIds(tags, token) {
    })();
 }
 
-async function getMediaId(slug) {
+async function getMediaId(slug, token) {
    return retryOperation(async () => {
-      const response = await fetch(`${CLIENT_DOMAIN}${slug}`);
+      const response = await fetch(`${CLIENT_DOMAIN}${slug}`, {
+         headers: {
+            Authorization: `Basic ${token}`
+         }
+      });
       const result = await response.json();
 
       if (result) {

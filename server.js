@@ -27,7 +27,7 @@ app.use(cookieParser());
 
 async function mainExc() {
    try {
-      console.log(`${timeLogger()}: Script started.`);
+      console.log(`${timeLogger()}: Script started for ${process.env.CLIENT_DOMAIN}.`);
 
       const currentYear = new Date().getFullYear();
 
@@ -44,16 +44,18 @@ async function mainExc() {
       // Generating jwt token by username and password
       // const jwtData = await generateJwtToken();
 
-      const token = process.env.REST_TOKEN; // jwtData?.token;
+      const token = process.env.REST_TOKEN_JAMES; // jwtData?.token;
 
       if (!token) {
-         throw new Error(`Sorry! Token not generated.`);
+         throw new Error(`Sorry! Token not found.`);
       }
 
       console.log(`${timeLogger()}: Token generated successfully.`);
 
       // create category
       const category = await makePostRequest(`/wp-json/wp/v2/categories`, { name: "ATP Tennis Predictions" }, token);
+
+      console.log(category);
 
       let categoryId = null;
       const parseCategory = category ? JSON.parse(category) : {};
@@ -101,15 +103,17 @@ async function mainExc() {
                         console.log(`${timeLogger()}: Running event of ${playerOne} vs ${playerTwo} - ${content?.eventDay}.`);
                         contentIndex = contentIndex + 1;
 
-                        let playerOneMedia, playerTwoMedia;
-                        playerOneMedia = await getMediaId(`/wp-json/wp/v2/media?slug=${player1slug}_yes`);
-                        playerTwoMedia = await getMediaId(`/wp-json/wp/v2/media?slug=${player2slug}_yes`);
-                        const randomNumberBetween1To3 = Math.floor(Math.random() * 3) + 1;
+                        let playerOneMedia = {}, playerTwoMedia = {};
+                        playerOneMedia = await getMediaId(`/wp-json/wp/v2/media?slug=${player1slug}_yes`, token);
+                        playerTwoMedia = await getMediaId(`/wp-json/wp/v2/media?slug=${player2slug}_yes`, token);
+
 
                         if (!playerOneMedia?.mediaId) {
-                           playerOneMedia = await getMediaId(`/wp-json/wp/v2/media?slug=generic${randomNumberBetween1To3}_yes`);
-                        } else if (!playerTwoMedia?.mediaId) {
-                           playerTwoMedia = await getMediaId(`/wp-json/wp/v2/media?slug=generic${randomNumberBetween1To3}_yes`);
+                           playerOneMedia = await getMediaId(`/wp-json/wp/v2/media?slug=generic${Math.floor(Math.random() * 3) + 1}_yes`, token);
+                        }
+
+                        if (!playerTwoMedia?.mediaId) {
+                           playerTwoMedia = await getMediaId(`/wp-json/wp/v2/media?slug=generic${Math.floor(Math.random() * 3) + 1}_yes`, token);
                         }
 
 
@@ -127,8 +131,8 @@ async function mainExc() {
                         </div>
 
                         <div style="display: flex; flex-direction: row;">
-                           ${playerOneMedia?.sourceUrl && `<img src="${playerOneMedia?.sourceUrl}" alt="${playerOneMedia?.slug}" style="flex: 1; width: 50%;" />`}
-                           ${playerTwoMedia?.sourceUrl && `<img src="${playerTwoMedia?.sourceUrl}" alt="${playerTwoMedia?.slug}" style="flex: 1; width: 50%;" />`} 
+                           ${playerOneMedia?.sourceUrl ? `<img src="${playerOneMedia?.sourceUrl}" alt="${playerOneMedia?.slug}" style="flex: 1; width: 50%;" />` : ""}
+                           ${playerTwoMedia?.sourceUrl ? `<img src="${playerTwoMedia?.sourceUrl}" alt="${playerTwoMedia?.slug}" style="flex: 1; width: 50%;" />` : ""} 
                         </div>
    
                         <div style="margin: 80px 0">
@@ -184,8 +188,7 @@ async function mainExc() {
                            title,
                            content: htmlContent,
                            status: "draft",
-                           slug: slugMaker(title),
-                           author: 1,
+                           author: 1844,
                            tags: tagIds,
                            // featured_media: mediaId,
                            categories: [categoryId]
@@ -250,19 +253,19 @@ async function mainExc() {
 //    }
 // });
 
-// app.get("/get-pdf", (req, res) => {
-//    try {
-//       console.log("server run");
-//       return res.status(200).send({message: "data got"})
-//    } catch (error) {
+app.get("/get-pdf", (req, res) => {
+   try {
+      console.log("server run");
+      return res.status(200).send({message: "data got"})
+   } catch (error) {
 
-//    }
-// });
+   }
+});
 app.listen(PORT, async () => {
    try {
       console.log(`Server running on PORT: ${PORT}`);
-      const result = await mainExc();
-      console.log(`${timeLogger()}: ${result?.message}`);
+      // const result = await mainExc();
+      // console.log(`${timeLogger()}: ${result?.message}`);
    } catch (error) {
       console.log(error?.message);
    }
