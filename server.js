@@ -2,19 +2,17 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const schedule = require("node-schedule");
 require("dotenv").config();
-const path = require("path");
+const { constant } = require("./config");
 
 const { delay,
    timeLogger,
    makePostRequest,
    paraphrasePdf,
-   generateJwtToken,
    downloadPDF,
    extractMatchInfo,
    getPostTagIds,
    getPdfLinks,
    getMediaId,
-   slugMaker,
    checkPostExists
 } = require("./utils/utils");
 
@@ -25,16 +23,21 @@ const PORT = process.env.PORT || 9000;
 app.use(cookieParser());
 
 
+function imgWrapper(arr) {
+   return arr.map((item) => {
+      return (`<img src="${item?.sourceUrl}" alt="${item?.slug}" style="flex: 1; width: 50%;" />`);
+   });
+}
+
 async function mainExc() {
    try {
-      console.log(`${timeLogger()}: Script started for ${process.env.CLIENT_DOMAIN}.`);
+      console.log(`${timeLogger()}: Script started for ${constant?.clientDomainName}.`);
 
       const currentYear = new Date().getFullYear();
 
-      const mediaUrl = `https://www.atptour.com/en/media/daily-media-notes?year=${currentYear}`;
-
       // Getting pdf first link
-      const newPDFLinks = await getPdfLinks(mediaUrl);
+      const newPDFLinks = await getPdfLinks(constant?.atpNoteUri(currentYear));
+
       console.log(`${timeLogger()}: Got new pdf links.`);
 
       if (newPDFLinks.length <= 0) {
@@ -44,7 +47,7 @@ async function mainExc() {
       // Generating jwt token by username and password
       // const jwtData = await generateJwtToken();
 
-      const token = process.env.REST_TOKEN_JAMES; // jwtData?.token;
+      const token = constant?.restAuthToken; // jwtData?.token;
 
       if (!token) {
          throw new Error(`Sorry! Token not found.`);
@@ -53,17 +56,17 @@ async function mainExc() {
       console.log(`${timeLogger()}: Token generated successfully.`);
 
       // create category
-      const category = await makePostRequest(`/wp-json/wp/v2/categories`, { name: "ATP Tennis Predictions" }, token);
-
-      console.log(category);
+      const category = await makePostRequest(constant?.categoryUri, { name: constant?.categoryName }, token);
 
       let categoryId = null;
+
       const parseCategory = category ? JSON.parse(category) : {};
 
       if (parseCategory?.code === "term_exists") {
          categoryId = parseCategory?.data?.term_id;
       } else {
          categoryId = parseCategory?.id;
+         console.log(`${timeLogger()}: New category added.`);
       }
 
 
@@ -75,7 +78,7 @@ async function mainExc() {
 
          const pdfLink = pdfData[0] ? pdfData[0] : "";
 
-         const pdfTextContents = await downloadPDF(`https://www.atptour.com${pdfLink}`);
+         const pdfTextContents = await downloadPDF(constant.pdfUri(pdfLink));
 
          if (pdfTextContents) {
 
@@ -94,61 +97,61 @@ async function mainExc() {
                      const player1slug = content?.player1slug;
                      const player2slug = content?.player2slug;
                      const text = content?.content;
+                     const nameOfEvent = content?.eventName;
+                     const shortDateOfEvent = content?.eventShortDate;
+                     const dayOfEvent = content?.eventDay;
+                     const addressOfEvent = content?.eventAddress;
+                     const roundOfEvent = content?.round || null;
+                     const title = `${nameOfEvent} Predictions: ${playerOne} vs ${playerTwo} - ${shortDateOfEvent}`;
 
-                     const title = `${content?.eventName} Predictions:(${playerOne} vs ${playerTwo}) - ${content?.eventShortDate}`;
+                     const isUniquePost = await checkPostExists(constant?.postExistUri(title), token);
 
-                     const isUniquePost = await checkPostExists(title, token);
-
-                     if (!isUniquePost) {
-                        console.log(`${timeLogger()}: Running event of ${playerOne} vs ${playerTwo} - ${content?.eventDay}.`);
+                     if (!isUniquePost && playerOne && playerTwo && nameOfEvent) {
+                        console.log(`${timeLogger()}: Running event of ${playerOne} vs ${playerTwo} - ${dayOfEvent}.`);
                         contentIndex = contentIndex + 1;
 
                         let playerOneMedia = {}, playerTwoMedia = {};
-                        playerOneMedia = await getMediaId(`/wp-json/wp/v2/media?slug=${player1slug}_yes`, token);
-                        playerTwoMedia = await getMediaId(`/wp-json/wp/v2/media?slug=${player2slug}_yes`, token);
+                        playerOneMedia = await getMediaId(constant.mediaUri(player1slug), token);
+                        playerTwoMedia = await getMediaId(constant.mediaUri(player2slug), token);
 
 
                         if (!playerOneMedia?.mediaId) {
-                           playerOneMedia = await getMediaId(`/wp-json/wp/v2/media?slug=generic${Math.floor(Math.random() * 3) + 1}_yes`, token);
+                           playerOneMedia = await getMediaId(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
                         }
 
                         if (!playerTwoMedia?.mediaId) {
-                           playerTwoMedia = await getMediaId(`/wp-json/wp/v2/media?slug=generic${Math.floor(Math.random() * 3) + 1}_yes`, token);
+                           playerTwoMedia = await getMediaId(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
                         }
 
 
                         // returns tags ids [1, 2, 3]
-                        const tagIds = await getPostTagIds([playerOne, playerTwo, content?.eventName], token);
+                        const tagIds = await getPostTagIds(constant?.tagUri, [playerOne, playerTwo, nameOfEvent], token);
 
-                        const paraphrasedBlog = text; // await paraphrasePdf(`Reword/Rephrase word by word using paragraphs "${text}"`);
+                        const paraphrasedBlog = text;// await paraphrasePdf(constant?.paraphrasedCommand(text));
 
                         const htmlContent = `
-                        <div style="padding: 20px 0; margin-top: 50px">
-                           <h2>${content?.eventName}</h2>
+                        <div style="padding: 15px 0; margin-top: 10px">
+                           <h2>${nameOfEvent}</h2>
                            <span>${content?.eventFullDate}</span>
                            <br/>
-                           <p>${content?.eventAddress}.</p>
+                           <p>${addressOfEvent}.</p>
                         </div>
 
-                        <div style="display: flex; flex-direction: row;">
-                           ${playerOneMedia?.sourceUrl ? `<img src="${playerOneMedia?.sourceUrl}" alt="${playerOneMedia?.slug}" style="flex: 1; width: 50%;" />` : ""}
-                           ${playerTwoMedia?.sourceUrl ? `<img src="${playerTwoMedia?.sourceUrl}" alt="${playerTwoMedia?.slug}" style="flex: 1; width: 50%;" />` : ""} 
-                        </div>
+                        <div style="display: flex; flex-direction: row;">${imgWrapper([playerOneMedia, playerTwoMedia])}</div>
    
-                        <div style="margin: 80px 0">
+                        <div style="margin: 15px 0">
                            <ul>
-                              <li>Player1 Name: ${playerOne}</li>
-                              <li>Player2 Name: ${playerTwo}</li>
-                              <li>Event Name: ${content?.eventName}</li>
-                              <li>Match Date: ${content?.eventShortDate}</li>
-                              ${content?.round ? `<li>Match Round: ${content?.round}</li>` : ""}
-                              <li>Day Of Event: ${content?.eventDay}</li>
-                              <li>Event Address: ${content?.eventAddress}</li>
+                              <li>The match up: ${playerOne} vs ${playerTwo}</li>
+                              <li>Event Name: ${nameOfEvent}</li>
+                              <li>Match Date: ${shortDateOfEvent}</li>
+                              ${roundOfEvent ? `<li>Match Round: ${roundOfEvent}</li>` : ""}
+                              <li>Day Of Event: ${dayOfEvent}</li>
+                              <li>Event Address: ${addressOfEvent}</li>
                            </ul>
                         </div>
    
                         <p>
-                           The 2024 ${content?.eventName} continues with plenty of interesting matches on the ${content?.eventDay} schedule. 
+                           The 2024 ${nameOfEvent} continues with plenty of interesting matches on the ${dayOfEvent} schedule. 
                            Let's have a look at all the career, 
                            performance and head-to-head stats for the match and find out if ${playerOne} or ${playerTwo} is expected to win.
                         </p>
@@ -156,7 +159,7 @@ async function mainExc() {
                         <br/> <br/>
    
                         <h3 class="wp-headings">Match Details:</h3>
-                        <p>${playerOne} vs ${playerTwo}${content?.round ? " - " + content?.round + " - " : " - "}${content?.eventShortDate} - ${content?.eventName} - ${content?.eventAddress}</p>
+                        <p>${playerOne} vs ${playerTwo}${roundOfEvent ? " - " + roundOfEvent + " - " : " - "}${shortDateOfEvent} - ${nameOfEvent} - ${addressOfEvent}</p>
                         
                         <br/> <br/>
    
@@ -184,11 +187,11 @@ async function mainExc() {
                         </p>
                         `;
 
-                        await makePostRequest("/wp-json/wp/v2/posts", {
+                        await makePostRequest(constant?.postUri, {
                            title,
                            content: htmlContent,
-                           status: "draft",
-                           author: 1844,
+                           status: constant?.postStatus,
+                           author: constant?.authorId,
                            tags: tagIds,
                            // featured_media: mediaId,
                            categories: [categoryId]
@@ -200,7 +203,7 @@ async function mainExc() {
                      } else {
                         console.log(`${timeLogger()}: ${title} already exists.`)
                      }
-                     // }
+
                   } catch (error) {
                      throw new Error(error?.message);
                   }
@@ -222,7 +225,6 @@ async function mainExc() {
 //    try {
 //       const result = await mainExc();
 //       console.log(`${timeLogger()}: ${result?.message}`);
-
 
 //       // const textFile = fs.readFileSync("pdfNewText.txt");
 
@@ -256,16 +258,19 @@ async function mainExc() {
 app.get("/get-pdf", (req, res) => {
    try {
       console.log("server run");
-      return res.status(200).send({message: "data got"})
+      return res.status(200).send({ message: "data got" })
    } catch (error) {
 
    }
 });
+
+
+
 app.listen(PORT, async () => {
    try {
       console.log(`Server running on PORT: ${PORT}`);
-      // const result = await mainExc();
-      // console.log(`${timeLogger()}: ${result?.message}`);
+      const result = await mainExc();
+      console.log(`${timeLogger()}: ${result?.message}`);
    } catch (error) {
       console.log(error?.message);
    }

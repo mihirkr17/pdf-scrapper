@@ -5,20 +5,15 @@ const cheerio = require('cheerio');
 const https = require("https");
 let puppeteer = require("puppeteer-extra");
 const Stealth = require("puppeteer-extra-plugin-stealth");
+const { constant } = require("../config");
 
 const fetch = (...args) =>
    import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-require("dotenv").config();
-
 // Main Constants
 const OPEN_AI_INSTANCE = new OpenAI({
-   apiKey: process.env.OPEN_AI_SECRETS
+   apiKey: constant?.openAiSecret
 });
-
-const CLIENT_DOMAIN = process.env.CLIENT_DOMAIN || "";
-const CLIENT_USERNAME = process.env.CLIENT_USERNAME || "";
-const CLIENT_PWD = process.env.CLIENT_PWD || "";
 
 
 const delay = (ms = 2000) => new Promise(resolve => setTimeout(resolve, ms));
@@ -149,14 +144,14 @@ async function paraphrasePdf(prompt) {
 }
 
 
-
-async function makePostRequest(uri, body = {}, jwtToken) {
+// utils 
+async function makePostRequest(uri, body = {}, token) {
    return retryOperation(async () => {
-      const response = await fetch(`${CLIENT_DOMAIN}${uri}`, {
+      const response = await fetch(uri, {
          method: "POST",
          headers: {
             "Content-Type": "application/json",
-            Authorization: `Basic ${jwtToken}`
+            Authorization: `Basic ${token}`
          },
          body: JSON.stringify(body)
       });
@@ -166,18 +161,14 @@ async function makePostRequest(uri, body = {}, jwtToken) {
 }
 
 
-
-async function generateJwtToken() {
+// Generating jwt token
+async function generateJwtToken(url) {
    return retryOperation(async () => {
-      const response = await fetch(`${CLIENT_DOMAIN}/wp-json/jwt-auth/v1/token?username=${CLIENT_USERNAME}&password=${CLIENT_PWD}`, {
+      const response = await fetch(url, {
          method: "POST",
       });
 
-      const data = await response.json();
-
-      console.log(data);
-
-      return data;
+      return await response.json();
    })();
 }
 
@@ -186,7 +177,6 @@ async function generateJwtToken() {
 async function downloadPDF(url) {
    return retryOperation(async () => {
       console.log(`${timeLogger()}: Got pdf link of media note - ${url}`);
-
       const buffers = await fetchDataByHttps(url, "buffer");
       const pdfContents = await PDFParser(buffers);
       return pdfContents.text;
@@ -303,12 +293,9 @@ function extractMatchInfo(text) {
    return result;
 }
 
-const checkPostExists = async (title, token) => {
+const checkPostExists = async (url, token) => {
 
-   //?search=${encodeURIComponent(title)}
-   let uri = `${CLIENT_DOMAIN}/wp-json/wp/v2/posts?status=any&search=${encodeURIComponent(title)}`;
-
-   const response = await fetch(uri, {
+   const response = await fetch(url, {
       method: "GET",
       headers: {
          Authorization: `Basic ${token}`
@@ -320,13 +307,13 @@ const checkPostExists = async (title, token) => {
 };
 
 
-async function getPostTagIds(tags, token) {
+async function getPostTagIds(uri, tags, token) {
    return retryOperation(async () => {
       const tagIds = [];
 
       for (const tag of tags) {
          try {
-            const response = await makePostRequest("/wp-json/wp/v2/tags", { name: tag + " Predictions" }, token);
+            const response = await makePostRequest(uri, { name: tag + " Predictions" }, token);
 
             const result = response ? JSON.parse(response) : {};
 
@@ -345,9 +332,9 @@ async function getPostTagIds(tags, token) {
    })();
 }
 
-async function getMediaId(slug, token) {
+async function getMediaId(uri, token) {
    return retryOperation(async () => {
-      const response = await fetch(`${CLIENT_DOMAIN}${slug}`, {
+      const response = await fetch(uri, {
          headers: {
             Authorization: `Basic ${token}`
          }
@@ -405,7 +392,7 @@ async function runPup(url) {
             const title = pdf.querySelector("span")?.textContent;
 
             if (title.match(/Media Notes/g)) {
-               links.push(aLink + "=title=" + title)
+               links.push(aLink + "=split=" + title)
             }
          })
       }
@@ -428,13 +415,12 @@ async function runCheerio(url) {
 
    const $ = cheerio.load(data);
 
-   const ul = $('ul.daily-media-notes li');
+   const ul = $('ul.dai ly-media-notes li');
 
    const links = [];
 
    if (ul) {
       ul.each((_, pdf) => {
-
          const aLink = $(pdf).find("a").attr("href");
          const title = $(pdf).find("span").text();
 
