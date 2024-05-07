@@ -36,18 +36,20 @@ async function mainExc() {
       const currentYear = new Date().getFullYear();
 
       // Getting pdf first link
-      const newPDFLinks = await getPdfLinks(constant?.atpNoteUri(currentYear));
+      const mediaNoteUris = await getPdfLinks(constant?.atpNoteUri(currentYear));
 
-      console.log(`${timeLogger()}: Got new pdf links.`);
-
-      if (newPDFLinks.length <= 0) {
-         return { message: `Sorry no pdf found!` };
+      if (mediaNoteUris.length <= 0) {
+         return { message: `Sorry no media note urls available right now!` };
       }
 
-      // Generating jwt token by username and password
-      // const jwtData = await generateJwtToken();
+      console.log(`${timeLogger()}: Got new media note urls.`);
 
-      const token = constant?.restAuthToken; // jwtData?.token;
+      // Generating jwt token by username and password
+      // const jwtToken = await generateJwtToken();
+
+
+      // Basic wordpress authentication
+      const token = constant?.restAuthToken; // jwtToken;
 
       if (!token) {
          throw new Error(`Sorry! Token not found.`);
@@ -55,7 +57,7 @@ async function mainExc() {
 
       console.log(`${timeLogger()}: Token generated successfully.`);
 
-      // create category
+      // Creating category by wordpress rest api 
       const category = await makePostRequest(constant?.categoryUri, { name: constant?.categoryName }, token);
 
       let categoryId = null;
@@ -72,17 +74,14 @@ async function mainExc() {
 
       if (!categoryId || typeof categoryId !== "number") throw new Error("Sorry! category not found.");
 
-      for (const mediaNote of newPDFLinks) {
+      for (const mediaNoteUri of mediaNoteUris) {
 
-         const pdfData = mediaNote.split("=split=");
-
-         const pdfLink = pdfData[0] ? pdfData[0] : "";
-
-         const pdfTextContents = await downloadPDF(constant.pdfUri(pdfLink));
+         // Download pdf by link and extracted contents by Pdf parser.
+         const pdfTextContents = await downloadPDF(constant.pdfUri(mediaNoteUri));
 
          if (pdfTextContents) {
 
-            // Extracting match details from pdf contents | returns []
+            // Extracting match details from pdf contents | basically it returns [Array];
             const contents = extractMatchInfo(pdfTextContents);
 
             console.log(`${timeLogger()}: Pdf downloaded and extracted contents successfully.`);
@@ -104,6 +103,8 @@ async function mainExc() {
                      const roundOfEvent = content?.round || null;
                      const title = `${nameOfEvent} Predictions: ${playerOne} vs ${playerTwo} - ${shortDateOfEvent}`;
 
+
+                     // Checking post availability in the wordpress post by rest api;
                      const isUniquePost = await checkPostExists(constant?.postExistUri(title), token);
 
                      if (!isUniquePost && playerOne && playerTwo && nameOfEvent) {
@@ -124,11 +125,12 @@ async function mainExc() {
                         }
 
 
-                        // returns tags ids [1, 2, 3]
+                        // It returns tags ids like [1, 2, 3];
                         const tagIds = await getPostTagIds(constant?.tagUri, [playerOne, playerTwo, nameOfEvent], token);
 
                         const paraphrasedBlog = text;// await paraphrasePdf(constant?.paraphrasedCommand(text));
 
+                        // Making html contents
                         const htmlContent = `
                         <div style="padding: 15px 0; margin-top: 10px">
                            <h2>${nameOfEvent}</h2>
@@ -187,6 +189,8 @@ async function mainExc() {
                         </p>
                         `;
 
+
+                        // finally making a post request by wordpress rest api 
                         await makePostRequest(constant?.postUri, {
                            title,
                            content: htmlContent,

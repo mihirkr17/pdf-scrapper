@@ -1,6 +1,6 @@
 const constant = {
    openAiSecret: process.env.OPEN_AI_SECRETS,
-   restAuthToken: "cm9vdDpAbWtyMTk5OHRlc3Qtd29yZHByZXNz" || process.env.REST_TOKEN_JAMES,
+   restAuthToken: process.env.REST_TOKEN || process.env.REST_TOKEN_JAMES,
    clientDomainName: process.env.CLIENT_DOMAIN,
    clientUserName: process.env.CLIENT_USERNAME,
    clientUserPassword: process.env.CLIENT_PWD,

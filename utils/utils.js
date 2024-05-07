@@ -168,7 +168,10 @@ async function generateJwtToken(url) {
          method: "POST",
       });
 
-      return await response.json();
+      const data = await response.json();
+
+
+      return data?.token;
    })();
 }
 
@@ -392,7 +395,7 @@ async function runPup(url) {
             const title = pdf.querySelector("span")?.textContent;
 
             if (title.match(/Media Notes/g)) {
-               links.push(aLink + "=split=" + title)
+               links.push(aLink)
             }
          })
       }
@@ -415,7 +418,7 @@ async function runCheerio(url) {
 
    const $ = cheerio.load(data);
 
-   const ul = $('ul.dai ly-media-notes li');
+   const ul = $('ul.daily-media-notes li');
 
    const links = [];
 
@@ -425,7 +428,7 @@ async function runCheerio(url) {
          const title = $(pdf).find("span").text();
 
          if (title.match(/Media Notes/g)) {
-            links.push(aLink + "=split=" + title)
+            links.push(aLink)
          }
       });
       return links;
