@@ -1,24 +1,17 @@
 const fs = require("fs");
-const PDFParser = require('pdf-parse');
-const OpenAI = require("openai");
-const cheerio = require('cheerio');
 const https = require("https");
-let puppeteer = require("puppeteer-extra");
-const Stealth = require("puppeteer-extra-plugin-stealth");
-const { constant } = require("../config");
-
 const fetch = (...args) =>
    import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-// Main Constants
-const OPEN_AI_INSTANCE = new OpenAI({
-   apiKey: constant?.openAiSecret
-});
-
-
 const delay = (ms = 2000) => new Promise(resolve => setTimeout(resolve, ms));
 
-const timeLogger = () => (new Date(Date.now()).toLocaleString());
+const consoleLogger = (msg = "") => (console.log(`[${new Date(Date.now()).toLocaleTimeString()}] ${msg}`));
+
+function imgWrapper(arr) {
+   return arr.map((item) => {
+      return (`<img src="${item?.sourceUrl}" alt="${item?.slug}" style="flex: 1; width: 50%;" />`);
+   });
+}
 
 function retryOperation(func, retries = 5) {
    return async function (...args) {
@@ -26,7 +19,7 @@ function retryOperation(func, retries = 5) {
          try {
             return await func(...args);
          } catch (error) {
-            console.log(`${timeLogger()}, An unexpected error occurred: ${error?.message}. Retrying after 2s`);
+            consoleLogger(`An unexpected error occurred: ${error?.message}. Retrying after 2s`);
             retries--;
             if (retries === 0) {
                throw new Error(`Retry limit reached, Last Error: ${error.message}`);
@@ -37,7 +30,96 @@ function retryOperation(func, retries = 5) {
    }
 }
 
-function fetchDataByHttps(url, type = "text") {
+function slugMaker(str) {
+   return str.toLowerCase()
+      .replace(/[^a-z0-9-_\s]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-{2,}/g, '-')
+      .replace(/^-+|-+$/g, '');
+}
+
+// Creating file asynchronously.
+async function createFileAsynchronously(fileName, data) {
+   return retryOperation(async () => {
+      return new Promise((resolve, reject) => {
+
+         let writer = fs.createWriteStream(fileName);
+
+         writer.on("error", (err) => {
+            reject(err);
+         });
+
+         writer.on("finish", () => {
+            resolve("File saved.");
+         });
+
+         writer.write(data);
+         writer.end();
+      });
+
+   })();
+}
+
+// Reading file asynchronously
+async function readFileAsynchronously(fileName, type = "text") {
+   return retryOperation(async () => {
+      return new Promise((resolve, reject) => {
+
+         let stream = fs.createReadStream(fileName);
+
+         let data = type === "buffer" ? [] : "";
+
+         stream.on("error", (err) => {
+            reject(err);
+         });
+
+         stream.on("data", (chunk) => {
+            if (type === "buffer") {
+               data.push(chunk);
+            } else {
+               data += chunk;
+               resolve(chunk);
+            }
+         });
+         stream.on("end", () => resolve(type === "buffer" ? Buffer.concat(data) : data));
+      });
+   })()
+}
+
+// Post request wrapper
+async function xhrPostRequest(url, token = "", body = {}, type = "text") {
+   try {
+      const response = await fetch(url, {
+         method: "POST",
+         headers: {
+            "Content-Type": "application/json",
+            Authorization: `Basic ${token}`
+         },
+         body: JSON.stringify(body)
+      });
+      return type === "json" ? await response.json() : await response.text();
+   } catch (error) {
+      throw error;
+   }
+}
+
+// Get request wrapper
+async function xhrGetRequest(url, token = "", type = "text") {
+   try {
+      const response = await fetch(url, {
+         method: "GET",
+         headers: {
+            Authorization: `Basic ${token}`
+         },
+      });
+      return type === "json" ? await response.json() : await response.text();
+   } catch (error) {
+      throw error;
+   }
+}
+
+// Fetch data by build in https module
+function httpsGetRequest(url, type = "text") {
    return new Promise((resolve, reject) => {
 
       if (type !== "text" && type !== "buffer") {
@@ -66,124 +148,6 @@ function fetchDataByHttps(url, type = "text") {
          reject(error);
       });
    });
-}
-
-function slugMaker(str) {
-   return str.toLowerCase()
-      .replace(/[^a-z0-9-_\s]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-{2,}/g, '-')
-      .replace(/^-+|-+$/g, '');
-}
-
-
-/**
- * [Write file asynchronously]
- */
-async function createFileAsynchronously(fileName, data) {
-   return retryOperation(async () => {
-      return new Promise((resolve, reject) => {
-
-         let writer = fs.createWriteStream(fileName);
-
-         writer.on("error", (err) => {
-            reject(err);
-         });
-
-         writer.on("finish", () => {
-            resolve("File saved.");
-         });
-
-         writer.write(data);
-         writer.end();
-      });
-
-   })();
-}
-
-
-/**
- * [Read file asynchronously]
- */
-async function readFileAsynchronously(fileName, type = "text") {
-   return retryOperation(async () => {
-      return new Promise((resolve, reject) => {
-
-         let stream = fs.createReadStream(fileName);
-
-         let data = type === "buffer" ? [] : "";
-
-         stream.on("error", (err) => {
-            reject(err);
-         });
-
-         stream.on("data", (chunk) => {
-            if (type === "buffer") {
-               data.push(chunk);
-            } else {
-               data += chunk;
-               resolve(chunk);
-            }
-         });
-         stream.on("end", () => resolve(type === "buffer" ? Buffer.concat(data) : data));
-      });
-   })()
-}
-
-// api calling function
-async function paraphrasePdf(prompt) {
-   return retryOperation(async () => {
-      const result = await OPEN_AI_INSTANCE.chat.completions.create({
-         model: "gpt-3.5-turbo-16k",
-         messages: [{ role: "user", content: `${prompt}` }],
-      });
-
-      console.log("Paraphrased done.");
-      return result.choices[0].message.content;
-   })();
-}
-
-
-// utils 
-async function makePostRequest(uri, body = {}, token) {
-   return retryOperation(async () => {
-      const response = await fetch(uri, {
-         method: "POST",
-         headers: {
-            "Content-Type": "application/json",
-            Authorization: `Basic ${token}`
-         },
-         body: JSON.stringify(body)
-      });
-      const result = await response.text();
-      return result;
-   })();
-}
-
-
-// Generating jwt token
-async function generateJwtToken(url) {
-   return retryOperation(async () => {
-      const response = await fetch(url, {
-         method: "POST",
-      });
-
-      const data = await response.json();
-
-
-      return data?.token;
-   })();
-}
-
-
-// Download pdf file
-async function downloadPDF(url) {
-   return retryOperation(async () => {
-      console.log(`${timeLogger()}: Got pdf link of media note - ${url}`);
-      const buffers = await fetchDataByHttps(url, "buffer");
-      const pdfContents = await PDFParser(buffers);
-      return pdfContents.text;
-   })();
 }
 
 
@@ -296,63 +260,6 @@ function extractMatchInfo(text) {
    return result;
 }
 
-const checkPostExists = async (url, token) => {
-
-   const response = await fetch(url, {
-      method: "GET",
-      headers: {
-         Authorization: `Basic ${token}`
-      }
-   });
-   const posts = await response.json();
-
-   return posts.length >= 1; // If the length is greater than or equal to 1, then post exists and return true;
-};
-
-
-async function getPostTagIds(uri, tags, token) {
-   return retryOperation(async () => {
-      const tagIds = [];
-
-      for (const tag of tags) {
-         try {
-            const response = await makePostRequest(uri, { name: tag + " Predictions" }, token);
-
-            const result = response ? JSON.parse(response) : {};
-
-            if (result?.code === "term_exists") {
-               tagIds.push(result?.data?.term_id);
-            } else {
-               tagIds.push(result?.id);
-            }
-
-            await delay();
-         } catch (error) {
-            throw new Error(`Error In getPostTagIds: ${error?.message}`);
-         }
-      }
-      return tagIds;
-   })();
-}
-
-async function getMediaId(uri, token) {
-   return retryOperation(async () => {
-      const response = await fetch(uri, {
-         headers: {
-            Authorization: `Basic ${token}`
-         }
-      });
-      const result = await response.json();
-
-      if (result) {
-
-         const media = result[0] ? result[0] : {};
-
-         return { mediaId: media?.id, slug: media?.slug, sourceUrl: media?.source_url };
-      }
-   })();
-}
-
 function compareAndSeparatePdf(newMediaPdf, fixedMediaPdf) {
    const fixedSet = new Set(fixedMediaPdf.map(item => (item)));
 
@@ -366,103 +273,17 @@ function compareAndSeparatePdf(newMediaPdf, fixedMediaPdf) {
    return newValues;
 }
 
-
-async function runPup(url) {
-   let browser;
-
-   if (!url) {
-      throw new Error("Required atp media url!");
-   }
-
-   puppeteer = puppeteer.use(Stealth());
-
-   browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
-
-   let page = await browser.newPage();
-
-   await page.goto(url, { timeout: 80000, waitUntil: "domcontentloaded" });
-
-   console.log(`${timeLogger()}: Hitting ${url}`);
-
-   const data = await page.evaluate(() => {
-      const mediaPdf = document.querySelectorAll("ul.daily-media-notes li");
-
-      const links = [];
-
-      if (mediaPdf) {
-         mediaPdf.forEach(pdf => {
-            const aLink = pdf.querySelector("a").getAttribute("href");
-            const title = pdf.querySelector("span")?.textContent;
-
-            if (title.match(/Media Notes/g)) {
-               links.push(aLink)
-            }
-         })
-      }
-
-      return links;
-   });
-
-
-   await browser.close()
-
-   return data;
-}
-
-async function runCheerio(url) {
-   const data = await fetchDataByHttps(url);
-
-   if (!data) {
-      throw new Error("No response from atp media notes.");
-   }
-
-   const $ = cheerio.load(data);
-
-   const ul = $('ul.daily-media-notes li');
-
-   const links = [];
-
-   if (ul) {
-      ul.each((_, pdf) => {
-         const aLink = $(pdf).find("a").attr("href");
-         const title = $(pdf).find("span").text();
-
-         if (title.match(/Media Notes/g)) {
-            links.push(aLink)
-         }
-      });
-      return links;
-   }
-}
-
-// Get pdf links
-async function getPdfLinks(url) {
-   return retryOperation(async () => {
-      try {
-         return await runCheerio(url);
-      } catch (error) {
-         console.log(`${timeLogger()}. Error: ${error?.message} || Running Puppeteer...`);
-         return await runPup(url);
-      }
-   })();
-}
-
-
 module.exports = {
+   xhrGetRequest,
+   xhrPostRequest,
    delay,
-   timeLogger,
+   consoleLogger,
+   imgWrapper,
    slugMaker,
    readFileAsynchronously,
    createFileAsynchronously,
-   paraphrasePdf,
-   makePostRequest,
-   generateJwtToken,
-   downloadPDF,
    extractMatchInfo,
-   getPostTagIds,
    compareAndSeparatePdf,
    retryOperation,
-   getPdfLinks,
-   getMediaId,
-   checkPostExists
+   httpsGetRequest
 }

@@ -1,4 +1,5 @@
 const constant = {
+   scheduleTime: 4,
    openAiSecret: process.env.OPEN_AI_SECRETS,
    restAuthToken: process.env.REST_TOKEN || process.env.REST_TOKEN_JAMES,
    clientDomainName: process.env.CLIENT_DOMAIN,

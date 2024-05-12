@@ -5,48 +5,46 @@ require("dotenv").config();
 const { constant } = require("./config");
 
 const { delay,
-   timeLogger,
-   makePostRequest,
-   paraphrasePdf,
-   downloadPDF,
+   consoleLogger,
    extractMatchInfo,
-   getPostTagIds,
+   imgWrapper
+} = require("./utils");
+
+const {
    getPdfLinks,
-   getMediaId,
-   checkPostExists
-} = require("./utils/utils");
+   createPostOfWP,
+   getPostTagIdsOfWP,
+   getMediaIdOfWP,
+   checkExistingPostOfWP,
+   downloadPDF,
+   paraphraseContents,
+   createCategoryOfWP
+} = require("./services");
+
 
 const app = express();
 const PORT = process.env.PORT || 9000;
 
 // Middlewares
 app.use(cookieParser());
-
-
-function imgWrapper(arr) {
-   return arr.map((item) => {
-      return (`<img src="${item?.sourceUrl}" alt="${item?.slug}" style="flex: 1; width: 50%;" />`);
-   });
-}
+app.set({
+   origin: "*"
+});
 
 async function mainExc() {
    try {
-      console.log(`${timeLogger()}: Script started for ${constant?.clientDomainName}.`);
+      consoleLogger(`Script started for ${constant?.clientDomainName}.`);
 
       const currentYear = new Date().getFullYear();
 
       // Getting pdf first link
-      const mediaNoteUris = await getPdfLinks(constant?.atpNoteUri(currentYear));
+      const mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
 
-      if (mediaNoteUris.length <= 0) {
+      if (mediaNoteUrls.length <= 0) {
          return { message: `Sorry no media note urls available right now!` };
       }
 
-      console.log(`${timeLogger()}: Got new media note urls.`);
-
-      // Generating jwt token by username and password
-      // const jwtToken = await generateJwtToken();
-
+      consoleLogger(`Got new media note urls.`);
 
       // Basic wordpress authentication
       const token = constant?.restAuthToken; // jwtToken;
@@ -55,10 +53,10 @@ async function mainExc() {
          throw new Error(`Sorry! Token not found.`);
       }
 
-      console.log(`${timeLogger()}: Token generated successfully.`);
+      consoleLogger(`Got auth token.`);
 
       // Creating category by wordpress rest api 
-      const category = await makePostRequest(constant?.categoryUri, { name: constant?.categoryName }, token);
+      const category = await createCategoryOfWP(constant?.categoryUri, token, { name: constant?.categoryName });
 
       let categoryId = null;
 
@@ -68,23 +66,27 @@ async function mainExc() {
          categoryId = parseCategory?.data?.term_id;
       } else {
          categoryId = parseCategory?.id;
-         console.log(`${timeLogger()}: New category added.`);
+         consoleLogger(`New category added.`);
       }
 
-
       if (!categoryId || typeof categoryId !== "number") throw new Error("Sorry! category not found.");
+      let indexOfPdf = 1;
 
-      for (const mediaNoteUri of mediaNoteUris) {
+      for (const mediaNoteUrl of mediaNoteUrls) {
 
          // Download pdf by link and extracted contents by Pdf parser.
-         const pdfTextContents = await downloadPDF(constant.pdfUri(mediaNoteUri));
+         const pdfNoteUrl = constant.pdfUri(mediaNoteUrl);
+
+         consoleLogger(`Serial-${indexOfPdf}. Running ${pdfNoteUrl}...`);
+         const pdfTextContents = await downloadPDF(pdfNoteUrl);
 
          if (pdfTextContents) {
+            consoleLogger(`Successfully got PDF contents.`);
 
             // Extracting match details from pdf contents | basically it returns [Array];
             const contents = extractMatchInfo(pdfTextContents);
 
-            console.log(`${timeLogger()}: Pdf downloaded and extracted contents successfully.`);
+            consoleLogger(`Pdf downloaded and extracted contents successfully.`);
 
             if (Array.isArray(contents) && contents.length >= 1) {
                let contentIndex = 0;
@@ -103,32 +105,35 @@ async function mainExc() {
                      const roundOfEvent = content?.round || null;
                      const title = `${nameOfEvent} Predictions: ${playerOne} vs ${playerTwo} - ${shortDateOfEvent}`;
 
-
                      // Checking post availability in the wordpress post by rest api;
-                     const isUniquePost = await checkPostExists(constant?.postExistUri(title), token);
+                     const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(title), token);
 
                      if (!isUniquePost && playerOne && playerTwo && nameOfEvent) {
-                        console.log(`${timeLogger()}: Running event of ${playerOne} vs ${playerTwo} - ${dayOfEvent}.`);
+
+                        consoleLogger(`Starting ${title} - ${dayOfEvent}.`);
+
                         contentIndex = contentIndex + 1;
 
                         let playerOneMedia = {}, playerTwoMedia = {};
-                        playerOneMedia = await getMediaId(constant.mediaUri(player1slug), token);
-                        playerTwoMedia = await getMediaId(constant.mediaUri(player2slug), token);
+                        playerOneMedia = await getMediaIdOfWP(constant.mediaUri(player1slug), token);
+                        playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(player2slug), token);
 
 
                         if (!playerOneMedia?.mediaId) {
-                           playerOneMedia = await getMediaId(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
+                           playerOneMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
                         }
 
                         if (!playerTwoMedia?.mediaId) {
-                           playerTwoMedia = await getMediaId(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
+                           playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
                         }
 
 
                         // It returns tags ids like [1, 2, 3];
-                        const tagIds = await getPostTagIds(constant?.tagUri, [playerOne, playerTwo, nameOfEvent], token);
+                        const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOne, playerTwo, nameOfEvent], token);
 
-                        const paraphrasedBlog = text;// await paraphrasePdf(constant?.paraphrasedCommand(text));
+                        const paraphrasedBlog = text;// await paraphraseContents(constant?.paraphrasedCommand(text));
+
+                        consoleLogger("Paraphrased done.");
 
                         // Making html contents
                         const htmlContent = `
@@ -191,7 +196,7 @@ async function mainExc() {
 
 
                         // finally making a post request by wordpress rest api 
-                        await makePostRequest(constant?.postUri, {
+                        await createPostOfWP(constant?.postUri, token, {
                            title,
                            content: htmlContent,
                            status: constant?.postStatus,
@@ -199,22 +204,22 @@ async function mainExc() {
                            tags: tagIds,
                            // featured_media: mediaId,
                            categories: [categoryId]
-                        }, token);
+                        });
 
-                        console.log(`${timeLogger()}: Post successfully created with title ${title}.`);
+                        consoleLogger(`Post successfully created with title ${title}.`);
 
                         await delay();
                      } else {
-                        console.log(`${timeLogger()}: ${title} already exists.`)
+                        consoleLogger(`Already exist ${title} - ${dayOfEvent}.`);
                      }
 
                   } catch (error) {
                      throw new Error(error?.message);
                   }
                }
-
                await delay(1000);
             }
+            indexOfPdf++;
          }
       }
 
@@ -225,57 +230,26 @@ async function mainExc() {
    }
 };
 
-// (async () => {
-//    try {
-//       const result = await mainExc();
-//       console.log(`${timeLogger()}: ${result?.message}`);
-
-//       // const textFile = fs.readFileSync("pdfNewText.txt");
-
-//       // let text = JSON.parse(textFile);
-
-//       // const matchInfo = extractMatchInfo(text);
-//       // // 
-//       // console.log(matchInfo);
-
-
-//       // await createFileAsynchronously("ttc.json", JSON.stringify(matchInfo));
-//    } catch (error) {
-//       console.log(error?.message);
-//    }
-// })();
-
-
-// main operation
-// schedule.scheduleJob('*/6 * * * *', async function () {
-//    try {
-//       console.log(`${timeLogger()}: Main execution running every 5 minutes.`);
-//       const result = await mainExc();
-
-//       console.log(`${timeLogger()}: ${result?.message}`);
-
-//    } catch (error) {
-//       console.log(error?.message);
-//    }
-// });
-
-app.get("/get-pdf", (req, res) => {
-   try {
-      console.log("server run");
-      return res.status(200).send({ message: "data got" })
-   } catch (error) {
-
-   }
-});
-
-
-
 app.listen(PORT, async () => {
    try {
-      console.log(`Server running on PORT: ${PORT}`);
+      consoleLogger(`PDF scrapper server running successfully on PORT: ${PORT}`);
       const result = await mainExc();
-      console.log(`${timeLogger()}: ${result?.message}`);
+      consoleLogger(`${result?.message}`);
+
+      // schedule.scheduleJob(`0 */${constant?.scheduleTime} * * *`, async function () {
+      //    try {
+      //       consoleLogger(`Function running every ${constant?.scheduleTime} hours.`)
+
+      //       const result = await mainExc();
+
+      //       consoleLogger(`${result?.message}`);
+
+      //    } catch (error) {
+      //       consoleLogger(error?.message);
+      //    }
+      // });
+
    } catch (error) {
-      console.log(error?.message);
+      consoleLogger(error?.message);
    }
-})
+});
