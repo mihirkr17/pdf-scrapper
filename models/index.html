@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Pdf Scrapper</title>
+</head>
+
+<body>
+   <h1>This Is Pdf Scrapper</h1>
+   <div id="response_message"></div>
+   <div class="open-task"></div>
+</body>
+
+<script>
+
+
+   window.onload = async function () {
+      const baseUrl = "http://localhost:9000";
+      const openTask = document.querySelector(".open-task");
+      const responseMessage = document.getElementById("response_message");
+
+
+      async function openConfigurationFunc() {
+         try {
+            responseMessage.innerText = "";
+            const response = await fetch(`${baseUrl}/conf-open`, { method: "POST" });
+
+            const result = await response.json();
+
+            if (response.status === 401) {
+               openTask.innerHTML = `
+                  <div>
+                     <div id="loginForm">
+                        <div>
+                           <label htmlfor="emailAddress">Email Address</label>
+                           <input type="email" name="email" id="emailAddress"/>
+                        </div>   
+                        <div>
+                           <label htmlfor="passwordValue">Password</label>
+                           <input type="password" name="password" id="passwordValue"/>
+                        </div> 
+
+                        <div>
+                           <button id="loginBtn">Login</button>   
+                        </div>
+                     </div>   
+                  </div>
+               `;
+            }
+
+            if (result?.data) {
+
+               const { scheduleTime, scheduleAction } = result?.data;
+               openTask.innerHTML = `
+               <div>
+                  <div>
+                     <button id="logout">Logout</button>   
+                  </div>
+                  <div id="formAction">
+                     <div>
+                        <label htmlfor="scheduleTimeValue">Schedule Time (hrs)</label>
+                        <input value="${scheduleTime}" name="scheduleTimeValue" id="scheduleTimeValue" />   
+                     </div>
+                  
+                     <div>
+                        <label htmlfor="scheduleActionValue">Schedule Action</label>
+                        <input type="checkbox" name="scheduleActionValue" ${scheduleAction ? 'checked' : ''} id="scheduleActionValue" />
+                     </div>
+
+                     <div>
+                        <button id="configSubmitBtn">Save Changes</button>   
+                     </div>
+                  </div>
+               </div>
+               `;
+            }
+
+         } catch (error) {
+            window.alert(error?.message);
+         }
+      }
+
+      await openConfigurationFunc();
+
+      const configSubmitBtn = document.getElementById("configSubmitBtn");
+      const loginBtn = document.getElementById("loginBtn");
+      const logoutBtn = document.getElementById("logout");
+
+      configSubmitBtn && configSubmitBtn.addEventListener("click", async function (e) {
+         try {
+
+            const scheduleTimeValue = document.getElementById("scheduleTimeValue").value;
+            const scheduleActionValue = document.getElementById("scheduleActionValue").checked;
+
+            const response = await fetch(`${baseUrl}/conf-edit`, {
+               method: "PUT",
+               headers: {
+                  "Content-Type": "application/json"
+               },
+               body: JSON.stringify({ scheduleTimeValue, scheduleActionValue })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+               await new Promise((r) => setTimeout(r, 2000));
+               window.location.href = baseUrl;
+            }
+
+            responseMessage.innerText = (result?.message);
+         } catch (error) {
+            responseMessage.innerText = (error?.message);
+         }
+      });
+
+
+      loginBtn && loginBtn.addEventListener("click", async function (e) {
+         try {
+            e.preventDefault();
+            const email = document.getElementById("emailAddress").value;
+            const password = document.getElementById("passwordValue").value;
+
+            if (!email || !password) throw new Error("Required email address and password.");
+
+            const response = await fetch(`${baseUrl}/auth/login`, {
+               method: "POST",
+               headers: {
+                  "Content-Type": "application/json"
+               },
+               body: JSON.stringify({ email, password })
+            });
+
+            const result = await response.json();
+
+            if (result?.success) {
+               window.location.reload();
+            }
+
+            responseMessage.innerText = (result?.message);
+         } catch (error) {
+            responseMessage.innerText = (error?.message);
+         }
+      })
+
+
+      logoutBtn && logoutBtn.addEventListener("click", async function () {
+         try {
+            const response = await fetch(`${baseUrl}/auth/logout`, {
+               method: "POST"
+            });
+
+            const result = await response.json();
+
+            if (result?.success) {
+               await openConfigurationFunc();
+            }
+
+            window.alert(result?.message);
+         } catch (error) {
+            window.alert(error?.message);
+         }
+      })
+   }
+
+
+
+
+
+   // setInterval(openConfigurationFunc, 10000);
+</script>
+
+</html>

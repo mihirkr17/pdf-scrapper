@@ -15,18 +15,28 @@ function imgWrapper(arr) {
 
 function retryOperation(func, retries = 5) {
    return async function (...args) {
-      while (retries > 0) {
+      const isInfinite = typeof retries === "string" && retries === "infinity";
+      let attemptsLeft = isInfinite ? Infinity : retries;
+
+      while (attemptsLeft > 0) {
          try {
             return await func(...args);
          } catch (error) {
             consoleLogger(`An unexpected error occurred: ${error?.message}. Retrying after 2s`);
-            retries--;
-            if (retries === 0) {
-               throw new Error(`Retry limit reached, Last Error: ${error.message}`);
+
+            if (!isInfinite) {
+               attemptsLeft--;
+
+               if (attemptsLeft === 0) {
+                  throw new Error(`Retry limit reached, Last Error: ${error.message}`);
+               }
             }
-            await delay();
+
+            await delay(4000);
          }
       }
+
+      throw new Error('Retry attempts exhausted');
    }
 }
 
