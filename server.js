@@ -262,6 +262,10 @@ async function mainExc() {
 //    }
 // })();
 
+app.get("/", (req, res) => {
+   return resizeBy.status(200).json({message: "Working"})
+});
+
 app.listen(PORT, async () => {
    try {
       const url = `https://www.stevegtennis.com/h2h-predictions/wp-json/wp/v2/posts?search=${encodeURIComponent("wta-rome-2024-aryna-sabalenka-vs-elina-svitolina-match-analysis")}`
