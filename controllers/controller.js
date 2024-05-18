@@ -3,6 +3,7 @@ const configuration = require("../configuration.json");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mainExc = require("../init/init");
+const { constant } = require("../config");
 
 async function restartTask(req, res, next) {
    try {
@@ -17,7 +18,11 @@ async function restartTask(req, res, next) {
 
 async function openConfiguration(req, res, next) {
    try {
-      return res.status(200).send({ message: "data got", data: configuration });
+      const scheduleTime = parseInt(constant?.scheduleTime);
+      const scheduleTimeLabel = constant?.scheduleTimeLabel;
+      const scheduleAction = constant?.scheduleAction;
+
+      return res.status(200).send({ message: "data got", data: { scheduleTime, scheduleAction, scheduleTimeLabel } });
    } catch (error) {
       next(error);
    }

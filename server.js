@@ -13,6 +13,7 @@ const {
 
 const path = require("path");
 const mainExc = require("./init/init");
+const { constant } = require("./config");
 
 
 const app = express();
@@ -34,17 +35,37 @@ app.use(require("./routes/route"));
 
 (async () => {
    try {
-      schedule.scheduleJob(`*/${configuration?.scheduleTime} * * * *`, async function () {
+      if (!["ON", "OFF"].includes(constant?.scheduleAction)) {
+         throw new Error(`ERROR: Schedule action must be set as "SCHEDULE_ACTION=ON or OFF" in .env`);
+      }
+
+      const isScheduleTimeValueDigit = (/[0-9]/g).test(constant?.scheduleTime);
+
+      if (!isScheduleTimeValueDigit) {
+         throw new Error(`ERROR: Schedule time must be set as "SCHEDULE_TIME=0 to 9" in .env.`);
+      }
+      const scheduleTime = parseInt(constant?.scheduleTime);
+
+      const scheduleTimeLabel = constant?.scheduleTimeLabel;
+
+      if (!["minutes", "hours"].includes(scheduleTimeLabel)) {
+         throw new Error(`ERROR: Schedule format must be set as "SCHEDULE_TIME_LABEL=minutes or hours" in .env.`);
+      }
+
+      const scheduleJobTime = scheduleTimeLabel === "minutes" ? `*/${scheduleTime} * * * *` : `0 */${scheduleTime} * * *`;
+
+      schedule.scheduleJob(scheduleJobTime, async function () {
          try {
-            consoleLogger(`Function will run every ${configuration?.scheduleTime} ${configuration?.scheduleTimeLabel}.`);
+            const isSchedule = constant?.scheduleAction === "ON" ? true : false;
 
-            if (configuration?.scheduleAction) {
+            consoleLogger(`Function will run every ${scheduleTime} ${scheduleTimeLabel}.`);
 
+            if (isSchedule) {
                const result = await mainExc();
 
                consoleLogger(`${result?.message}`);
             } else {
-               consoleLogger("Schedule is off.");
+               consoleLogger("Schedule off.");
             }
          } catch (error) {
             throw error;

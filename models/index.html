@@ -89,70 +89,26 @@
 
             const result = await response.json();
 
-            if (!response.ok || response.status === 401) {
-               openTask.innerHTML = `
-                  <div>
-           
-                     <div id="formAction">
-                        <div class="inp_group">
-                           <label htmlfor="emailAddress">Email Address</label>
-                           <input class="inp" type="email" name="email" id="emailAddress"/>
-                        </div>   
-                        <div class="inp_group">
-                           <label htmlfor="passwordValue">Password</label>
-                           <input class="inp" type="password" name="password" id="passwordValue"/>
-                        </div> 
-
-                        <div class="inp_group">
-                           <button class="submit_btn" id="loginBtn">Login</button>   
-                        </div>
-                     </div>   
-                  </div>
-               `;
-            }
-
-
 
             if (result?.data) {
                const { scheduleTime, scheduleAction, scheduleTimeLabel } = result?.data;
                openTask.innerHTML = `
                <div>
                   
-                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px">
-                     <header class="header">
-                        <h1 style="font-size: 1.1rem;">Pdf Scrapper</h1>
-                     </header>
-                     <button id="logout" class="submit_btn">Logout</button>   
-                  </div>
                   <div id="formAction">
 
-                     <h2 style="font-size: 1rem; padding: 10px 0 25px 0; text-align: center;">Configuration</h2>
+                     <h2 style="font-size: 1rem; padding: 10px 0 25px 0; text-align: center;">Pdf Scrapper Configuration</h2>
 
                      <div class="inp_group">
-                        <label htmlfor="scheduleActionValue">Schedule Action&nbsp;&nbsp;
-                           <input type="checkbox" name="scheduleActionValue" ${scheduleAction ? 'checked' : ''} id="scheduleActionValue" />
-                        </label>
+                        <label>Schedule Action:&nbsp;&nbsp${scheduleAction}</label>
                      </div>
 
                      <div class="inp_group">
-                        <label htmlfor="scheduleTimeLabel">Schedule label</label>
-                        <select class="inp" id="scheduleTimeLabel">
-                           ${scheduleTimeLabel ? "<option value='" + scheduleTimeLabel + "'>" + scheduleTimeLabel + "</option>" : ""}
-                           <option value="">Choose Time Label</option>
-                           <option value="minutes">minutes</option>
-                           <option value="hours">hours</option>
-                        </select>
+                        <label>Schedule Format:&nbsp;&nbsp;${scheduleTimeLabel}</label>
                      </div>
 
                      <div class="inp_group">
-                        <label htmlfor="scheduleTimeValue">Schedule time (0-9)</label>
-                        <input class="inp" type="number" value="${scheduleTime}" name="scheduleTimeValue" id="scheduleTimeValue" />   
-                     </div>
-
-                     
-
-                     <div class="inp_group">
-                        <button class="submit_btn" id="configSubmitBtn">Save Changes</button>   
+                        <label htmlfor="scheduleTimeValue">Schedule Time:&nbsp;&nbsp${scheduleTime} ${scheduleTimeLabel}</label>
                      </div>
                   </div>
                </div>
@@ -166,98 +122,8 @@
 
       await openConfigurationFunc();
 
-      const configSubmitBtn = document.getElementById("configSubmitBtn");
-      const loginBtn = document.getElementById("loginBtn");
-      const logoutBtn = document.getElementById("logout");
-
-      configSubmitBtn && configSubmitBtn.addEventListener("click", async function (e) {
-         try {
-
-            const scheduleTimeValue = document.getElementById("scheduleTimeValue")?.value;
-            const scheduleActionValue = document.getElementById("scheduleActionValue")?.checked;
-            const scheduleTimeLabel = document.getElementById("scheduleTimeLabel")?.value;
-
-            if (!["hours", "minutes"].includes(scheduleTimeLabel)) {
-               throw new Error("Invalid time format.");
-            }
-
-            console.log(scheduleTimeValue);
-
-            const response = await fetch(`${baseUrl}/conf-edit`, {
-               method: "PUT",
-               headers: {
-                  "Content-Type": "application/json"
-               },
-               body: JSON.stringify({ scheduleTimeValue: parseInt(scheduleTimeValue), scheduleActionValue, scheduleTimeLabel })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-               await new Promise((r) => setTimeout(r, 2000));
-               window.location.href = baseUrl;
-            }
-
-            responseMessage.innerText = (result?.message);
-         } catch (error) {
-            responseMessage.innerText = (error?.message);
-         }
-      });
-
-
-      loginBtn && loginBtn.addEventListener("click", async function (e) {
-         try {
-            e.preventDefault();
-            const email = document.getElementById("emailAddress").value;
-            const password = document.getElementById("passwordValue").value;
-
-            if (!email || !password) throw new Error("Required email address and password.");
-
-            const response = await fetch(`${baseUrl}/auth/login`, {
-               method: "POST",
-               headers: {
-                  "Content-Type": "application/json"
-               },
-               body: JSON.stringify({ email, password })
-            });
-
-            const result = await response.json();
-
-            if (result?.success) {
-               window.location.reload();
-            }
-
-            responseMessage.innerText = (result?.message);
-         } catch (error) {
-            responseMessage.innerText = (error?.message);
-         }
-      })
-
-
-      logoutBtn && logoutBtn.addEventListener("click", async function () {
-         try {
-            const response = await fetch(`${baseUrl}/auth/logout`, {
-               method: "POST"
-            });
-
-            const result = await response.json();
-
-            if (result?.success) {
-               await openConfigurationFunc();
-            }
-
-            window.alert(result?.message);
-         } catch (error) {
-            window.alert(error?.message);
-         }
-      })
+      setInterval(async () => await openConfigurationFunc(), 10000);
    }
-
-
-
-
-
-   // setInterval(openConfigurationFunc, 10000);
 </script>
 
 </html>

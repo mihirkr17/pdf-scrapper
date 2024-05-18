@@ -1,10 +1,13 @@
 const constant = {
-   scheduleTime: 2,
+   scheduleTime: process.env.SCHEDULE_TIME,
+   scheduleTimeLabel: process.env.SCHEDULE_TIME_LABEL || "minutes",
+   scheduleAction: process.env.SCHEDULE_ACTION,
    openAiSecret: process.env.OPEN_AI_SECRETS,
    restAuthToken: process.env.REST_TOKEN || process.env.REST_TOKEN_SG_JAMES,
    clientDomainName: process.env.CLIENT_DOMAIN,
    clientUserName: process.env.CLIENT_USERNAME,
    clientUserPassword: process.env.CLIENT_PWD,
+
    jwtUri: "",
    mediaUri: function (slug) {
       return `${constant.clientDomainName}/wp-json/wp/v2/media?slug=${slug}_yes`;
