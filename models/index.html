@@ -5,22 +5,82 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Pdf Scrapper</title>
+
+   <style>
+      * {
+         margin: 0;
+         padding: 0;
+      }
+
+      body {
+         font-family: 'Courier New', Courier, monospace;
+      }
+
+      body>main {
+         padding: 10px 50px;
+      }
+
+      #root {
+         height: 100vh;
+         position: relative;
+      }
+
+      #formAction {
+         box-shadow: 0 0 16px 0 #0000003d;
+         position: absolute;
+         top: 50%;
+         left: 50%;
+         transform: translate(-50%, -50%);
+         border: 1px solid #0000003d;
+         padding: 20px 25px;
+         border-radius: 4px;
+      }
+
+      .inp_group {
+         display: flex;
+         flex-direction: column;
+         margin-bottom: 20px;
+      }
+
+      .inp {
+         border: 1px solid #2626267d;
+         border-radius: 6px;
+         padding: 5px 10px;
+         font-size: 1rem;
+         display: block;
+         margin-top: 5px;
+      }
+
+      .submit_btn {
+         padding: 5px 15px;
+         border-radius: 4px;
+         font-size: 0.9rem;
+         transition: linear 0.3s;
+         border: 1px solid #2626267d;
+         cursor: pointer;
+      }
+
+      .submit_btn:hover {
+         background-color: rgb(182, 182, 182);
+
+      }
+   </style>
 </head>
 
 <body>
-   <h1>This Is Pdf Scrapper</h1>
-   <div id="response_message"></div>
-   <div class="open-task"></div>
+   <main>
+
+      <div id="response_message"></div>
+      <div class="open-task" id="root"></div>
+   </main>
 </body>
 
 <script>
-
-
    window.onload = async function () {
-      const baseUrl = "http://localhost:9000";
+      const baseUrl = `${window && window.location.protocol}//${window && window.location?.host}` || "http://localhost:9000";
+
       const openTask = document.querySelector(".open-task");
       const responseMessage = document.getElementById("response_message");
-
 
       async function openConfigurationFunc() {
          try {
@@ -29,48 +89,70 @@
 
             const result = await response.json();
 
-            if (response.status === 401) {
+            if (!response.ok || response.status === 401) {
                openTask.innerHTML = `
                   <div>
-                     <div id="loginForm">
-                        <div>
+           
+                     <div id="formAction">
+                        <div class="inp_group">
                            <label htmlfor="emailAddress">Email Address</label>
-                           <input type="email" name="email" id="emailAddress"/>
+                           <input class="inp" type="email" name="email" id="emailAddress"/>
                         </div>   
-                        <div>
+                        <div class="inp_group">
                            <label htmlfor="passwordValue">Password</label>
-                           <input type="password" name="password" id="passwordValue"/>
+                           <input class="inp" type="password" name="password" id="passwordValue"/>
                         </div> 
 
-                        <div>
-                           <button id="loginBtn">Login</button>   
+                        <div class="inp_group">
+                           <button class="submit_btn" id="loginBtn">Login</button>   
                         </div>
                      </div>   
                   </div>
                `;
             }
 
-            if (result?.data) {
 
-               const { scheduleTime, scheduleAction } = result?.data;
+
+            if (result?.data) {
+               const { scheduleTime, scheduleAction, scheduleTimeLabel } = result?.data;
                openTask.innerHTML = `
                <div>
-                  <div>
-                     <button id="logout">Logout</button>   
+                  
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 20px">
+                     <header class="header">
+                        <h1 style="font-size: 1.1rem;">Pdf Scrapper</h1>
+                     </header>
+                     <button id="logout" class="submit_btn">Logout</button>   
                   </div>
                   <div id="formAction">
-                     <div>
-                        <label htmlfor="scheduleTimeValue">Schedule Time (hrs)</label>
-                        <input value="${scheduleTime}" name="scheduleTimeValue" id="scheduleTimeValue" />   
-                     </div>
-                  
-                     <div>
-                        <label htmlfor="scheduleActionValue">Schedule Action</label>
-                        <input type="checkbox" name="scheduleActionValue" ${scheduleAction ? 'checked' : ''} id="scheduleActionValue" />
+
+                     <h2 style="font-size: 1rem; padding: 10px 0 25px 0; text-align: center;">Configuration</h2>
+
+                     <div class="inp_group">
+                        <label htmlfor="scheduleActionValue">Schedule Action&nbsp;&nbsp;
+                           <input type="checkbox" name="scheduleActionValue" ${scheduleAction ? 'checked' : ''} id="scheduleActionValue" />
+                        </label>
                      </div>
 
-                     <div>
-                        <button id="configSubmitBtn">Save Changes</button>   
+                     <div class="inp_group">
+                        <label htmlfor="scheduleTimeLabel">Schedule label</label>
+                        <select class="inp" id="scheduleTimeLabel">
+                           ${scheduleTimeLabel ? "<option value='" + scheduleTimeLabel + "'>" + scheduleTimeLabel + "</option>" : ""}
+                           <option value="">Choose Time Label</option>
+                           <option value="minutes">minutes</option>
+                           <option value="hours">hours</option>
+                        </select>
+                     </div>
+
+                     <div class="inp_group">
+                        <label htmlfor="scheduleTimeValue">Schedule time (0-9)</label>
+                        <input class="inp" type="number" value="${scheduleTime}" name="scheduleTimeValue" id="scheduleTimeValue" />   
+                     </div>
+
+                     
+
+                     <div class="inp_group">
+                        <button class="submit_btn" id="configSubmitBtn">Save Changes</button>   
                      </div>
                   </div>
                </div>
@@ -91,15 +173,22 @@
       configSubmitBtn && configSubmitBtn.addEventListener("click", async function (e) {
          try {
 
-            const scheduleTimeValue = document.getElementById("scheduleTimeValue").value;
-            const scheduleActionValue = document.getElementById("scheduleActionValue").checked;
+            const scheduleTimeValue = document.getElementById("scheduleTimeValue")?.value;
+            const scheduleActionValue = document.getElementById("scheduleActionValue")?.checked;
+            const scheduleTimeLabel = document.getElementById("scheduleTimeLabel")?.value;
+
+            if (!["hours", "minutes"].includes(scheduleTimeLabel)) {
+               throw new Error("Invalid time format.");
+            }
+
+            console.log(scheduleTimeValue);
 
             const response = await fetch(`${baseUrl}/conf-edit`, {
                method: "PUT",
                headers: {
                   "Content-Type": "application/json"
                },
-               body: JSON.stringify({ scheduleTimeValue, scheduleActionValue })
+               body: JSON.stringify({ scheduleTimeValue: parseInt(scheduleTimeValue), scheduleActionValue, scheduleTimeLabel })
             });
 
             const result = await response.json();

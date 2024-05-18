@@ -1,5 +1,5 @@
 const express = require("express");
-const { restartTask, openConfiguration, editConfiguration, loginControl, logoutControl } = require("../controllers/main");
+const { restartTask, openConfiguration, editConfiguration, loginControl, logoutControl } = require("../controllers/controller");
 const { verifyAuth } = require("../middlewares/jwt");
 
 const router = express.Router();

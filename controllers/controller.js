@@ -1,7 +1,8 @@
-const { readFileAsynchronously, createFileAsynchronously } = require("../utils");
+const { readFileAsynchronously, createFileAsynchronously, consoleLogger } = require("../utils");
 const configuration = require("../configuration.json");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const mainExc = require("../init/init");
 
 async function restartTask(req, res, next) {
    try {
@@ -27,7 +28,22 @@ async function editConfiguration(req, res, next) {
    try {
       const body = req?.body;
       const scheduleTime = body?.scheduleTimeValue;
+      const scheduleTimeLabel = body?.scheduleTimeLabel;
       const scheduleAction = body?.scheduleActionValue;
+
+      if (!scheduleTime || typeof scheduleTime !== "number") {
+         return res.status(400).json({
+            message: "Schedule time should be number.",
+            success: true
+         });
+      }
+
+      if (!["hours", "minutes"].includes(scheduleTimeLabel)) {
+         return res.status(400).json({
+            success: true,
+            message: "Schedule time label should hours or minutes."
+         });
+      }
 
       let dataResult = configuration;
 
@@ -36,6 +52,11 @@ async function editConfiguration(req, res, next) {
       dataResult["scheduleAction"] = scheduleAction;
 
       await createFileAsynchronously("configuration.json", JSON.stringify(dataResult));
+
+      if (scheduleAction) {
+         const result = await mainExc();
+         consoleLogger(`${result?.message}`);
+      }
 
       return res.status(200).send({ message: "Setting updated." })
    } catch (error) {
@@ -73,10 +94,10 @@ async function loginControl(req, res, next) {
 
       const token = jwt.sign({ email }, process.env.SECRET, {
          algorithm: "HS256",
-         expiresIn: "16h",
+         expiresIn: "1h",
       });
 
-      res.cookie('jwt', token, { httpOnly: true, maxAge: 900000 });
+      res.cookie('jwt', token, { httpOnly: true, maxAge: 3600000 });
 
       return res.status(200).json({ message: "Login success.", success: true });
    } catch (error) {
