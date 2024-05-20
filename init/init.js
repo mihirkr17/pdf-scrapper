@@ -21,11 +21,13 @@ async function mainExc() {
       const currentYear = new Date().getFullYear();
 
       // Getting pdf first link
-      const mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
+      let mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
 
       if (mediaNoteUrls.length <= 0) {
          return { message: `Sorry no media note urls available right now!` };
       }
+
+      mediaNoteUrls = mediaNoteUrls.slice(0, 1);
 
       consoleLogger(`Got ${mediaNoteUrls.length} media note urls.`);
 
@@ -47,14 +49,13 @@ async function mainExc() {
 
       if (parseCategory?.code === "term_exists") {
          categoryId = parseCategory?.data?.term_id;
+         consoleLogger(`Category already exists with name ${constant?.categoryName}.`);
       } else {
          categoryId = parseCategory?.id;
          consoleLogger(`New category added.`);
       }
 
-      console.log("Category Id Is: " + categoryId);
-
-      return;
+      consoleLogger("Category Id Is: " + categoryId);
 
       if (!categoryId || typeof categoryId !== "number") throw new Error("Sorry! category not found.");
       let indexOfPdf = 1;
@@ -78,7 +79,7 @@ async function mainExc() {
 
             if (Array.isArray(contents) && contents.length >= 1) {
 
-               for (const content of contents) {
+               for (const content of contents.slice(0, 1)) {
                   try {
                      const playerOne = content?.player1;
                      const playerTwo = content?.player2;
@@ -116,9 +117,11 @@ async function mainExc() {
                         // It returns tags ids like [1, 2, 3];
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOne, playerTwo, nameOfEvent], token);
 
-                        const paraphrasedBlog = text;// await paraphraseContents(constant?.paraphrasedCommand(text));
+                        consoleLogger("Paraphrase starting...");
 
-                        consoleLogger("Paraphrased done.")
+                        const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(text));
+
+                        consoleLogger("Paraphrased done.");
                         // Making html contents
                         const htmlContent = `
                         <div style="padding: 15px 0; margin-top: 10px">
