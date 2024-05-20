@@ -52,6 +52,8 @@ async function mainExc() {
          consoleLogger(`New category added.`);
       }
 
+      console.log("Category Id Is: " + categoryId);
+
       return;
 
       if (!categoryId || typeof categoryId !== "number") throw new Error("Sorry! category not found.");
