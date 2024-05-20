@@ -21,6 +21,8 @@ async function getPdfLinks(url) {
 
 async function checkExistingPostOfWP(url, token) {
    return retryOperation(async () => {
+
+      console.log(url);
       const data = await xhrGetRequest(url, token, "json");
 
       console.log(data);
