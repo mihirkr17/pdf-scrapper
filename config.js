@@ -3,12 +3,8 @@ const constant = {
    scheduleTimeLabel: process.env.SCHEDULE_TIME_LABEL || "minutes",
    scheduleAction: process.env.SCHEDULE_ACTION,
    openAiSecret: process.env.OPEN_AI_SECRETS,
-   restAuthToken: process.env.REST_TOKEN || process.env.REST_TOKEN_SG_JAMES,
+   restAuthToken: process.env.REST_TOKEN || process.env.SG_AUTH_TOKEN,
    clientDomainName: process.env.CLIENT_DOMAIN,
-   clientUserName: process.env.CLIENT_USERNAME,
-   clientUserPassword: process.env.CLIENT_PWD,
-
-   jwtUri: "",
    mediaUri: function (slug) {
       return `${constant.clientDomainName}/wp-json/wp/v2/media?slug=${slug}_yes`;
    },
@@ -33,7 +29,6 @@ const constant = {
 };
 
 // Set properties that depend on other properties
-constant.jwtUri = `${constant.clientDomainName}/wp-json/jwt-auth/v1/token?username=${constant.clientUserName}&password=${constant.clientUserPassword}`;
 constant.tagUri = `${constant.clientDomainName}/wp-json/wp/v2/tags`;
 constant.categoryUri = `${constant.clientDomainName}/wp-json/wp/v2/categories`;
 constant.postUri = `${constant.clientDomainName}/wp-json/wp/v2/posts`;

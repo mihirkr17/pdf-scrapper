@@ -14,6 +14,7 @@ const {
 const path = require("path");
 const mainExc = require("./init/init");
 const { constant } = require("./config");
+const { checkExistingPostOfWP } = require("./services");
 
 
 const app = express();
@@ -35,14 +36,21 @@ app.use(require("./routes/route"));
 
 (async () => {
    try {
+
+      const titleMatch = "Koepfer Vs Cosano Pick & Prediction With H2H Stats Analysis - Open Parc - Lyon ATP 20th May 2024 - Open Parc  Predictions Day 1";
+      const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(titleMatch), "SmFtZXMgTW9ycmlzOnNLZFIgZ0MxRSBCT3pMIDFZWjAgd2Q5WCBVTVlW");
+
+
+      consoleLogger(isUniquePost);
+      return;
       if (!["ON", "OFF"].includes(constant?.scheduleAction)) {
          throw new Error(`ERROR: Schedule action must be set as "SCHEDULE_ACTION=ON or OFF" in .env`);
       }
 
-      const isScheduleTimeValueDigit = (/[0-9]/g).test(constant?.scheduleTime);
+      const isScheduleTimeValueDigit = (/[2-9]/g).test(constant?.scheduleTime);
 
       if (!isScheduleTimeValueDigit) {
-         throw new Error(`ERROR: Schedule time must be set as "SCHEDULE_TIME=0 to 9" in .env.`);
+         throw new Error(`ERROR: Schedule time must be set as "SCHEDULE_TIME=2 to 9" in .env.`);
       }
       const scheduleTime = parseInt(constant?.scheduleTime);
 
