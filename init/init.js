@@ -27,7 +27,7 @@ async function mainExc() {
          return { message: `Sorry no media note urls available right now!` };
       }
 
-      consoleLogger(`Got new media note urls.`);
+      consoleLogger(`Got ${mediaNoteUrls.length} media note urls.`);
 
       // Basic wordpress authentication
       const token = constant?.restAuthToken;
@@ -51,6 +51,8 @@ async function mainExc() {
          categoryId = parseCategory?.id;
          consoleLogger(`New category added.`);
       }
+
+      return;
 
       if (!categoryId || typeof categoryId !== "number") throw new Error("Sorry! category not found.");
       let indexOfPdf = 1;

@@ -3,7 +3,7 @@ const constant = {
    scheduleTimeLabel: process.env.SCHEDULE_TIME_LABEL || "minutes",
    scheduleAction: process.env.SCHEDULE_ACTION,
    openAiSecret: process.env.OPEN_AI_SECRETS,
-   restAuthToken: process.env.REST_TOKEN || process.env.SG_AUTH_TOKEN,
+   restAuthToken: process.env.SG_AUTH_TOKEN,
    clientDomainName: process.env.CLIENT_DOMAIN,
    mediaUri: function (slug) {
       return `${constant.clientDomainName}/wp-json/wp/v2/media?slug=${slug}_yes`;
@@ -24,7 +24,7 @@ const constant = {
       return `Reword/Rephrase word by word using paragraphs "${content}"`;
    },
    postUri: "",
-   authorId: 1, //1844,
+   authorId: 1844,
    postStatus: "draft"
 };
 
