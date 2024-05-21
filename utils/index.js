@@ -42,7 +42,7 @@ function retryOperation(func, retries = 5) {
 
 function slugMaker(str) {
    return str.toLowerCase()
-      .replace(/[^a-z0-9-_\s]/g, '')
+      .replace(/[^a-z0-9-_\s]/g, '').trim()
       .replace(/\s+/g, '-')
       .replace(/-{2,}/g, '-')
       .replace(/^-+|-+$/g, '');

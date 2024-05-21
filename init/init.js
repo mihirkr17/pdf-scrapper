@@ -10,7 +10,8 @@ const { getPdfLinks,
 
 const { consoleLogger, extractMatchInfo,
    imgWrapper,
-   readFileAsynchronously, delay } = require("../utils");
+   readFileAsynchronously, delay, 
+   slugMaker} = require("../utils");
 
 
 
@@ -92,9 +93,10 @@ async function mainExc() {
                      const addressOfEvent = content?.eventAddress;
                      const roundOfEvent = content?.round || null;
                      const title = `${nameOfEvent} Predictions: ${playerOne} vs ${playerTwo} - ${shortDateOfEvent}`;
+                     const slug = slugMaker(title);
 
                      // Checking post availability in the wordpress post by rest api;
-                     const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(title), token);
+                     const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
 
                      if (!isUniquePost && playerOne && playerTwo && nameOfEvent) {
 
@@ -185,6 +187,7 @@ async function mainExc() {
                         // finally making a post request by wordpress rest api 
                         await createPostOfWP(constant?.postUri, token, {
                            title,
+                           slug,
                            content: htmlContent,
                            status: constant?.postStatus,
                            author: constant?.authorId,

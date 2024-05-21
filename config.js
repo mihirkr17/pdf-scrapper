@@ -17,8 +17,8 @@ const constant = {
    atpNoteUri: function (year = 2024) {
       return `https://www.atptour.com/en/media/daily-media-notes?year=${year}`;
    },
-   postExistUri: function (title) {
-      return `${constant.clientDomainName}/wp-json/wp/v2/posts?status=any&search=${encodeURIComponent(title)}`
+   postExistUri: function (slug = "") {
+      return `${constant.clientDomainName}/wp-json/wp/v2/posts?status=any&slug=${slug}`
    },
    paraphrasedCommand: function (content) {
       return `Reword/Rephrase word by word using paragraphs "${content}"`;
