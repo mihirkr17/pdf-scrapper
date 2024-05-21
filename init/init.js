@@ -201,7 +201,7 @@ async function mainExc() {
                      }
 
                   } catch (error) {
-                     throw error;
+                     consoleLogger(`Error Inside Loop: ${error?.message}`);
                   }
                }
                await delay(1000);

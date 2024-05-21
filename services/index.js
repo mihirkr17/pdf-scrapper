@@ -22,6 +22,8 @@ async function getPdfLinks(url) {
 async function checkExistingPostOfWP(url, token) {
    return retryOperation(async () => {
       const data = await xhrGetRequest(url, token, "json");
+
+      console.log(data);
       return data.length >= 1;
    })();
 };
