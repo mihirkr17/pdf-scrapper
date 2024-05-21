@@ -83,7 +83,7 @@ async function createPostOfWP(url, token, body) {
 async function paraphraseContents(content) {
    return retryOperation(async () => {
       return await paraphraseBlogText(content);
-   })();
+   }, 30)();
 }
 
 // Creating wordpress post category

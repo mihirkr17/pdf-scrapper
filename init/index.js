@@ -10,36 +10,34 @@ const { getPdfLinks,
 
 const { consoleLogger, extractMatchInfo,
    imgWrapper,
-   readFileAsynchronously, delay, 
-   slugMaker} = require("../utils");
+   delay,
+   slugMaker } = require("../utils");
 
 
 
-async function mainExc() {
+async function init() {
    try {
       consoleLogger(`Script started for ${constant?.clientDomainName}.`);
 
       const currentYear = new Date().getFullYear();
 
       // Getting pdf first link
-      let mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
+      const mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
 
       if (mediaNoteUrls.length <= 0) {
          return { message: `Sorry no media note urls available right now!` };
       }
 
-      mediaNoteUrls = mediaNoteUrls.slice(0, 1);
-
-      consoleLogger(`Got ${mediaNoteUrls.length} media note urls.`);
+      consoleLogger(`Found ${mediaNoteUrls.length} media note urls.`);
 
       // Basic wordpress authentication
       const token = constant?.restAuthToken;
 
       if (!token) {
-         throw new Error(`Sorry! Token not found.`);
+         throw new Error(`Sorry! Auth token not found.`);
       }
 
-      consoleLogger(`Got auth token.`);
+      consoleLogger(`Found auth token successfully.`);
 
       // Creating category by wordpress rest api 
       const category = await createCategoryOfWP(constant?.categoryUri, token, { name: constant?.categoryName });
@@ -58,7 +56,8 @@ async function mainExc() {
 
       consoleLogger("Category Id Is: " + categoryId);
 
-      if (!categoryId || typeof categoryId !== "number") throw new Error("Sorry! category not found.");
+      if (!categoryId || typeof categoryId !== "number") throw new Error("Sorry! Category not found.");
+
       let indexOfPdf = 1;
 
       for (const mediaNoteUrl of mediaNoteUrls) {
@@ -66,7 +65,7 @@ async function mainExc() {
          // Download pdf by link and extracted contents by Pdf parser.
          const pdfNoteUrl = constant.pdfUri(mediaNoteUrl);
 
-         consoleLogger(`Serial-${indexOfPdf}. Running ${pdfNoteUrl}...`);
+         consoleLogger(`Link-${indexOfPdf}. ${pdfNoteUrl}.`);
 
          const pdfTextContents = await downloadPDF(pdfNoteUrl);
 
@@ -80,7 +79,7 @@ async function mainExc() {
 
             if (Array.isArray(contents) && contents.length >= 1) {
 
-               for (const content of contents.slice(0, 1)) {
+               for (const content of contents) {
                   try {
                      const playerOne = content?.player1;
                      const playerTwo = content?.player2;
@@ -106,7 +105,6 @@ async function mainExc() {
                         playerOneMedia = await getMediaIdOfWP(constant.mediaUri(player1slug), token);
                         playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(player2slug), token);
 
-
                         if (!playerOneMedia?.mediaId) {
                            playerOneMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
                         }
@@ -114,7 +112,6 @@ async function mainExc() {
                         if (!playerTwoMedia?.mediaId) {
                            playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
                         }
-
 
                         // It returns tags ids like [1, 2, 3];
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOne, playerTwo, nameOfEvent], token);
@@ -124,6 +121,7 @@ async function mainExc() {
                         const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(text));
 
                         consoleLogger("Paraphrased done.");
+
                         // Making html contents
                         const htmlContent = `
                         <div style="padding: 15px 0; margin-top: 10px">
@@ -200,13 +198,14 @@ async function mainExc() {
 
                         await delay();
                      } else {
-                        consoleLogger(`Already exist ${title} - ${dayOfEvent}.`);
+                        consoleLogger(`Already exist ${slug}.`);
                      }
-
                   } catch (error) {
                      consoleLogger(`Error Inside Loop: ${error?.message}`);
+                     await delay(4000);
                   }
                }
+
                await delay(1000);
             }
             indexOfPdf++;
@@ -214,11 +213,9 @@ async function mainExc() {
       }
 
       return { message: "Operation completed." };
-
    } catch (error) {
-      throw new Error(`Error In Main Execution: ${error?.message}`);
+      throw new Error(`Error In Init: ${error?.message}`);
    }
 };
 
-
-module.exports = mainExc;
+module.exports = init;

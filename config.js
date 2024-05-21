@@ -1,6 +1,6 @@
 const constant = {
    scheduleTime: process.env.SCHEDULE_TIME,
-   scheduleTimeLabel: process.env.SCHEDULE_TIME_LABEL || "minutes",
+   scheduleTimeLabel: process.env.SCHEDULE_TIME_LABEL,
    scheduleAction: process.env.SCHEDULE_ACTION,
    openAiSecret: process.env.OPEN_AI_SECRETS,
    restAuthToken: process.env.SG_AUTH_TOKEN,
@@ -23,9 +23,10 @@ const constant = {
    paraphrasedCommand: function (content) {
       return `Reword/Rephrase word by word using paragraphs "${content}"`;
    },
+   postStatusAll: ["publish", "future", "draft", "pending", "private"],
    postUri: "",
-   authorId: 1844,
-   postStatus: "draft"
+   authorId: process.env.AUTHOR_ID,
+   postStatus: process.env.POST_STATUS
 };
 
 // Set properties that depend on other properties
