@@ -37,18 +37,12 @@ app.use(require("./routes/route"));
 (async () => {
    try {
 
-      // const result = await mainExc();
+      const result = await mainExc();
 
-      // consoleLogger(`${result?.message}`);
+      consoleLogger(`${result?.message}`);
 
-      // return;
-
-      const titleMatch = "tennis-prediction-video-serrano-siegemund-h2h-grand-prix-de-sar-la-princesse-lalla-meryem-2024-day-3";
-      const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(titleMatch), "SmFtZXMgTW9ycmlzOnNLZFIgZ0MxRSBCT3pMIDFZWjAgd2Q5WCBVTVlW");
-
-
-      consoleLogger(isUniquePost);
       return;
+
       if (!["ON", "OFF"].includes(constant?.scheduleAction)) {
          throw new Error(`ERROR: Schedule action must be set as "SCHEDULE_ACTION=ON or OFF" in .env`);
       }
