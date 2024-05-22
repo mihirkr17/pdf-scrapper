@@ -7,9 +7,14 @@ const delay = (ms = 2000) => new Promise(resolve => setTimeout(resolve, ms));
 
 const consoleLogger = (msg = "") => (console.log(`[${new Date(Date.now()).toLocaleTimeString()}] ${msg}`));
 
-function imgWrapper(arr) {
-   return arr.map((item) => {
-      return (`<img src="${item?.sourceUrl}" alt="${item?.slug}" style="flex: 1; width: 50%;" />`);
+function getSurnameOfPlayer(fullName) {
+   const nameParts = fullName.split(' ');
+   return nameParts[nameParts.length - 1];
+}
+
+function imgWrapper(arr, playerOneSurname, playerTwoSurname) {
+   return arr.map((item, index) => {
+      return (`<img src="${item?.sourceUrl}" title="${index === 0 ? playerOneSurname + " vs " + playerTwoSurname : playerTwoSurname + " vs " + playerOneSurname}" alt="${item?.slug}" style="flex: 1; width: 50%;" />`);
    });
 }
 
@@ -283,6 +288,15 @@ function compareAndSeparatePdf(newMediaPdf, fixedMediaPdf) {
    return newValues;
 }
 
+
+function capitalizeFirstLetterOfEachWord(string) {
+   if (!string) return string;
+   return string.toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+}
+
 module.exports = {
    xhrGetRequest,
    xhrPostRequest,
@@ -295,5 +309,7 @@ module.exports = {
    extractMatchInfo,
    compareAndSeparatePdf,
    retryOperation,
-   httpsGetRequest
+   httpsGetRequest,
+   capitalizeFirstLetterOfEachWord,
+   getSurnameOfPlayer
 }

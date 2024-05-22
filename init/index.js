@@ -11,7 +11,9 @@ const { getPdfLinks,
 const { consoleLogger, extractMatchInfo,
    imgWrapper,
    delay,
-   slugMaker } = require("../utils");
+   slugMaker,
+   capitalizeFirstLetterOfEachWord,
+   getSurnameOfPlayer } = require("../utils");
 
 
 
@@ -62,76 +64,85 @@ async function init() {
 
       for (const mediaNoteUrl of mediaNoteUrls) {
 
-         // Download pdf by link and extracted contents by Pdf parser.
-         const pdfNoteUrl = constant.pdfUri(mediaNoteUrl);
+         try {
 
-         consoleLogger(`Link-${indexOfPdf}. ${pdfNoteUrl}.`);
+            // Download pdf by link and extracted contents by Pdf parser.
+            const pdfNoteUrl = constant.pdfUri(mediaNoteUrl);
 
-         const pdfTextContents = await downloadPDF(pdfNoteUrl);
+            consoleLogger(`Link-${indexOfPdf}. ${pdfNoteUrl}.`);
 
-         if (pdfTextContents) {
-            consoleLogger(`Successfully got PDF contents.`);
+            const pdfTextContents = await downloadPDF(pdfNoteUrl);
 
-            // Extracting match details from pdf contents | basically it returns [Array];
-            const contents = extractMatchInfo(pdfTextContents);
+            if (pdfTextContents) {
+               consoleLogger(`Successfully got PDF contents.`);
 
-            consoleLogger(`Pdf downloaded and extracted contents successfully.`);
+               // Extracting match details from pdf contents | basically it returns [Array];
+               const contents = extractMatchInfo(pdfTextContents);
 
-            if (Array.isArray(contents) && contents.length >= 1) {
+               consoleLogger(`Pdf downloaded and extracted contents successfully.`);
 
-               for (const content of contents) {
-                  try {
-                     const playerOne = content?.player1;
-                     const playerTwo = content?.player2;
-                     const player1slug = content?.player1slug;
-                     const player2slug = content?.player2slug;
-                     const text = content?.content;
-                     const nameOfEvent = content?.eventName;
-                     const shortDateOfEvent = content?.eventShortDate;
-                     const dayOfEvent = content?.eventDay;
-                     const addressOfEvent = content?.eventAddress;
-                     const roundOfEvent = content?.round || null;
-                     const title = `${nameOfEvent} Predictions: ${playerOne} vs ${playerTwo} - ${shortDateOfEvent}`;
-                     const slug = slugMaker(title);
+               if (Array.isArray(contents) && contents.length >= 1) {
 
-                     // Checking post availability in the wordpress post by rest api;
-                     const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
+                  for (const content of contents) {
+                     try {
+                        const playerOne = content?.player1;
+                        const playerTwo = content?.player2;
+                        const player1slug = content?.player1slug;
+                        const player2slug = content?.player2slug;
+                        const text = content?.content;
+                        const nameOfEvent = content?.eventName;
+                        const shortDateOfEvent = content?.eventShortDate;
+                        const dayOfEvent = content?.eventDay;
+                        const addressOfEvent = content?.eventAddress;
+                        const roundOfEvent = content?.round || null;
 
-                     if (!isUniquePost && playerOne && playerTwo && nameOfEvent) {
+                        const title = capitalizeFirstLetterOfEachWord(`${nameOfEvent} Predictions: ${playerOne} vs ${playerTwo} - ${shortDateOfEvent}`);
 
-                        consoleLogger(`Starting ${title} - ${dayOfEvent}.`);
+                        consoleLogger(`Generating slug for "${title}"`);
+                        const slug = slugMaker(title);
+                        consoleLogger(`Slug generated: ${slug}`);
 
-                        let playerOneMedia = {}, playerTwoMedia = {};
-                        playerOneMedia = await getMediaIdOfWP(constant.mediaUri(player1slug), token);
-                        playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(player2slug), token);
+                        // Checking post availability in the wordpress post by rest api;
+                        const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
 
-                        if (!playerOneMedia?.mediaId) {
-                           playerOneMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
-                        }
+                        if (!isUniquePost && playerOne && playerTwo && nameOfEvent) {
 
-                        if (!playerTwoMedia?.mediaId) {
-                           playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
-                        }
+                           consoleLogger(`Starting ${title}.`);
 
-                        // It returns tags ids like [1, 2, 3];
-                        const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOne, playerTwo, nameOfEvent], token);
+                           let playerOneMedia = {}, playerTwoMedia = {};
+                           playerOneMedia = await getMediaIdOfWP(constant.mediaUri(player1slug), token);
+                           playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(player2slug), token);
 
-                        consoleLogger("Paraphrase starting...");
+                           if (!playerOneMedia?.mediaId) {
+                              playerOneMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
+                           }
 
-                        const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(text));
+                           if (!playerTwoMedia?.mediaId) {
+                              playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
+                           }
 
-                        consoleLogger("Paraphrased done.");
+                           // It returns tags ids like [1, 2, 3];
+                           const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOne, playerTwo, nameOfEvent], token);
 
-                        // Making html contents
-                        const htmlContent = `
-                        <div style="padding: 15px 0; margin-top: 10px">
-                           <h2>${nameOfEvent}</h2>
-                           <span>${content?.eventFullDate}</span>
-                           <br/>
-                           <p>${addressOfEvent}.</p>
+                           consoleLogger("Paraphrase starting...");
+
+                           const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(text));
+
+                           consoleLogger("Paraphrased done.");
+
+                           const p1 = `<p>
+                                       The 2024 ${nameOfEvent} continues with plenty of interesting matches on the ${dayOfEvent} schedule. 
+                                       Let's have a look at all the career, performance and head-to-head stats for the match and find out if ${playerOne} or ${playerTwo} is expected to win.
+                                    </p>`;
+
+                           // Making html contents
+                           const htmlContent = `
+                        <div style="padding-bottom: 5px;">
+                           <h2 style="margin-top: unset;">${nameOfEvent}</h2>
+                           <p>${content?.eventFullDate}, ${addressOfEvent}.</p>
                         </div>
 
-                        <div style="display: flex; flex-direction: row;">${imgWrapper([playerOneMedia, playerTwoMedia])}</div>
+                        <div style="display: flex; flex-direction: row;">${imgWrapper([playerOneMedia, playerTwoMedia], getSurnameOfPlayer(playerOne), getSurnameOfPlayer(playerTwo))}</div>
    
                         <div style="margin: 15px 0">
                            <ul>
@@ -143,21 +154,17 @@ async function init() {
                               <li>Event Address: ${addressOfEvent}</li>
                            </ul>
                         </div>
-   
-                        <p>
-                           The 2024 ${nameOfEvent} continues with plenty of interesting matches on the ${dayOfEvent} schedule. 
-                           Let's have a look at all the career, 
-                           performance and head-to-head stats for the match and find out if ${playerOne} or ${playerTwo} is expected to win.
-                        </p>
+
+                        ${p1.replace(/\n/g, " ")}
    
                         <br/> <br/>
    
-                        <h3 class="wp-headings">Match Details:</h3>
+                        <h3>Match Details:</h3>
                         <p>${playerOne} vs ${playerTwo}${roundOfEvent ? " - " + roundOfEvent + " - " : " - "}${shortDateOfEvent} - ${nameOfEvent} - ${addressOfEvent}</p>
                         
                         <br/> <br/>
    
-                        <h3 class="wp-headings">${playerOne} vs ${playerTwo} Head-to-Head, Preview, Stats & Pick:</h3>
+                        <h3>${playerOne} vs ${playerTwo} Head-to-Head, Preview, Stats & Pick:</h3>
                         <article>
                            <h5>Head To Head ${content?.leads}.</h5>
                            <br/>
@@ -166,49 +173,52 @@ async function init() {
       
                         <br/> <br/>
       
-                        <h3 class="wp-headings">${playerOne} vs ${playerTwo} Prediction:</h3>
+                        <h3>${playerOne} vs ${playerTwo} Prediction:</h3>
    
                         <p>
                            I believe ${playerOne} will win in straight sets. 
                            The Stevegtennis.com prediction algorithm has a much better success rate in picking 
                            match winners than me! 
-                           So check out who it picks for this match here: Stevegtennis.com ${playerOne}  vs ${playerTwo} prediction.
-                           <br/>
-                           <br/>
-                           <a href="https://www.stevegtennis.com/head-to-head/men/${player1slug}/${player2slug}/" target="_blank">
-                              See Head 2 Head ${playerOne} vs ${playerTwo} in Stevegtennis
-                           </a>
+                           So check out who it picks for this match here: <a href="https://www.stevegtennis.com/head-to-head/men/${player1slug}/${player2slug}/" target="_blank">
+                              Stevegtennis.com ${playerOne}  vs ${playerTwo} prediction.
+                           </a>      
                         </p>
                         `;
 
 
-                        // finally making a post request by wordpress rest api 
-                        await createPostOfWP(constant?.postUri, token, {
-                           title,
-                           slug,
-                           content: htmlContent,
-                           status: constant?.postStatus,
-                           author: constant?.authorId,
-                           tags: tagIds,
-                           // featured_media: mediaId,
-                           categories: [categoryId]
-                        });
+                           // finally making a post request by wordpress rest api 
+                           await createPostOfWP(constant?.postUri, token, {
+                              title,
+                              slug,
+                              content: htmlContent,
+                              status: constant?.postStatus,
+                              author: constant?.authorId,
+                              tags: tagIds,
+                              featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
+                              categories: [categoryId]
+                           });
 
-                        consoleLogger(`Post successfully created with title ${title}.`);
+                           consoleLogger(`Post successfully created with title ${title}.`);
 
-                        await delay();
-                     } else {
-                        consoleLogger(`Already exist ${slug}.`);
+                           await delay();
+                        } else {
+                           consoleLogger(`Already exist ${slug}.`);
+                        }
+                     } catch (error) {
+                        consoleLogger(`Error Inside Loop: ${error?.message}`);
+                        await delay(4000);
+                        continue;
                      }
-                  } catch (error) {
-                     consoleLogger(`Error Inside Loop: ${error?.message}`);
-                     await delay(4000);
                   }
-               }
 
-               await delay(1000);
+                  await delay(1000);
+               }
+               indexOfPdf++;
             }
-            indexOfPdf++;
+         } catch (error) {
+            consoleLogger(`Error processing mediaNoteUrl: ${error.message}`);
+            await delay(4000);
+            continue;
          }
       }
 
