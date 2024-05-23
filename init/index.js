@@ -61,6 +61,7 @@ async function init() {
       if (!categoryId || typeof categoryId !== "number") throw new Error("Sorry! Category not found.");
 
       let indexOfPdf = 1;
+      let postCounter = 0;
 
       for (const mediaNoteUrl of mediaNoteUrls) {
 
@@ -96,6 +97,10 @@ async function init() {
                         const addressOfEvent = content?.eventAddress;
                         const roundOfEvent = content?.round || null;
 
+                        if (!playerOne || !playerTwo || !nameOfEvent) {
+                           throw new Error(`Some fields are missing.`);
+                        }
+
                         const title = capitalizeFirstLetterOfEachWord(`${nameOfEvent} Predictions: ${playerOne} vs ${playerTwo} - ${shortDateOfEvent}`);
 
                         consoleLogger(`Generating slug for "${title}"`);
@@ -105,7 +110,7 @@ async function init() {
                         // Checking post availability in the wordpress post by rest api;
                         const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
 
-                        if (!isUniquePost && playerOne && playerTwo && nameOfEvent) {
+                        if (!isUniquePost) {
 
                            consoleLogger(`Starting ${title}.`);
 
@@ -114,11 +119,11 @@ async function init() {
                            playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(player2slug), token);
 
                            if (!playerOneMedia?.mediaId) {
-                              playerOneMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
+                              playerOneMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 10) + 1}`), token);
                            }
 
                            if (!playerTwoMedia?.mediaId) {
-                              playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 3) + 1}`), token);
+                              playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 10) + 1}`), token);
                            }
 
                            // It returns tags ids like [1, 2, 3];
@@ -137,53 +142,53 @@ async function init() {
 
                            // Making html contents
                            const htmlContent = `
-                        <div style="padding-bottom: 5px;">
-                           <h2 style="margin-top: unset;">${nameOfEvent}</h2>
-                           <p>${content?.eventFullDate}, ${addressOfEvent}.</p>
-                        </div>
+                              <div style="padding-bottom: 5px;">
+                                 <h2 style="margin-top: unset;">${nameOfEvent}</h2>
+                                 <p>${content?.eventFullDate}, ${addressOfEvent}.</p>
+                              </div>
 
-                        <div style="display: flex; flex-direction: row;">${imgWrapper([playerOneMedia, playerTwoMedia], getSurnameOfPlayer(playerOne), getSurnameOfPlayer(playerTwo))}</div>
-   
-                        <div style="margin: 15px 0">
-                           <ul>
-                              <li>The match up: ${playerOne} vs ${playerTwo}</li>
-                              <li>Event Name: ${nameOfEvent}</li>
-                              <li>Match Date: ${shortDateOfEvent}</li>
-                              ${roundOfEvent ? `<li>Match Round: ${roundOfEvent}</li>` : ""}
-                              <li>Day Of Event: ${dayOfEvent}</li>
-                              <li>Event Address: ${addressOfEvent}</li>
-                           </ul>
-                        </div>
+                              <div style="display: flex; flex-direction: row;">${imgWrapper([playerOneMedia, playerTwoMedia], getSurnameOfPlayer(playerOne), getSurnameOfPlayer(playerTwo))}</div>
+         
+                              <div style="margin: 15px 0">
+                                 <ul>
+                                    <li>The match up: ${playerOne} vs ${playerTwo}</li>
+                                    <li>Event Name: ${nameOfEvent}</li>
+                                    <li>Match Date: ${shortDateOfEvent}</li>
+                                    ${roundOfEvent ? `<li>Match Round: ${roundOfEvent}</li>` : ""}
+                                    <li>Day Of Event: ${dayOfEvent}</li>
+                                    <li>Event Address: ${addressOfEvent}</li>
+                                 </ul>
+                              </div>
 
-                        ${p1.replace(/\n/g, " ")}
-   
-                        <br/> <br/>
-   
-                        <h3>Match Details:</h3>
-                        <p>${playerOne} vs ${playerTwo}${roundOfEvent ? " - " + roundOfEvent + " - " : " - "}${shortDateOfEvent} - ${nameOfEvent} - ${addressOfEvent}</p>
-                        
-                        <br/> <br/>
-   
-                        <h3>${playerOne} vs ${playerTwo} Head-to-Head, Preview, Stats & Pick:</h3>
-                        <article>
-                           <h5>Head To Head ${content?.leads}.</h5>
-                           <br/>
-                           <p>${paraphrasedBlog && paraphrasedBlog?.replace(/^"|"$/g, '')}</p>
-                        </article>
-      
-                        <br/> <br/>
-      
-                        <h3>${playerOne} vs ${playerTwo} Prediction:</h3>
-   
-                        <p>
-                           I believe ${playerOne} will win in straight sets. 
-                           The Stevegtennis.com prediction algorithm has a much better success rate in picking 
-                           match winners than me! 
-                           So check out who it picks for this match here: <a href="https://www.stevegtennis.com/head-to-head/men/${player1slug}/${player2slug}/" target="_blank">
-                              Stevegtennis.com ${playerOne}  vs ${playerTwo} prediction.
-                           </a>      
-                        </p>
-                        `;
+                              ${p1.replace(/\n/g, " ")}
+         
+                              <br/> <br/>
+         
+                              <h3>Match Details:</h3>
+                              <p>${playerOne} vs ${playerTwo}${roundOfEvent ? " - " + roundOfEvent + " - " : " - "}${shortDateOfEvent} - ${nameOfEvent} - ${addressOfEvent}</p>
+                              
+                              <br/> <br/>
+         
+                              <h3>${playerOne} vs ${playerTwo} Head-to-Head, Preview, Stats & Pick:</h3>
+                              <article>
+                                 <h5>Head To Head ${content?.leads}.</h5>
+                                 <br/>
+                                 <p>${paraphrasedBlog && paraphrasedBlog?.replace(/^"|"$/g, '')}</p>
+                              </article>
+            
+                              <br/> <br/>
+            
+                              <h3>${playerOne} vs ${playerTwo} Prediction:</h3>
+         
+                              <p>
+                                 I believe ${playerOne} will win in straight sets. 
+                                 The Stevegtennis.com prediction algorithm has a much better success rate in picking 
+                                 match winners than me!\n
+                                 So check out who it picks for this match here: <a href="https://www.stevegtennis.com/head-to-head/men/${player1slug}/${player2slug}/" target="_blank">
+                                    Stevegtennis.com ${playerOne} vs ${playerTwo} prediction.
+                                 </a>      
+                              </p>
+                              `;
 
 
                            // finally making a post request by wordpress rest api 
@@ -198,14 +203,16 @@ async function init() {
                               categories: [categoryId]
                            });
 
-                           consoleLogger(`Post successfully created with title ${title}.`);
+                           consoleLogger(`Post created for ${slug}.`);
+
+                           postCounter += 1;
 
                            await delay();
                         } else {
-                           consoleLogger(`Already exist ${slug}.`);
+                           consoleLogger(`Post already exist for ${slug}.`);
                         }
                      } catch (error) {
-                        consoleLogger(`Error Inside Loop: ${error?.message}`);
+                        consoleLogger(`Error Inside Loop: ${error?.message} Skipping this post.`);
                         await delay(4000);
                         continue;
                      }
@@ -222,7 +229,7 @@ async function init() {
          }
       }
 
-      return { message: "Operation completed." };
+      return { message: `${postCounter >= 1 ? `Total ${postCounter} posts created.` : "No posts have been created."} Operation done.` };
    } catch (error) {
       throw new Error(`Error In Init: ${error?.message}`);
    }
