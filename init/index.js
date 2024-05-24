@@ -17,7 +17,7 @@ const { consoleLogger, extractMatchInfo,
 
 
 
-async function init(categoryList) {
+async function init() {
    try {
 
       consoleLogger(`Script started for ${constant?.clientDomainName}.`);

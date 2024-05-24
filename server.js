@@ -80,7 +80,7 @@ app.use(require("./routes/route"));
       //    return { id: parseInt(id), lang, title: category };
       // })
 
-      const result =  await init(categoryList);
+      const result =  await init();
 
       consoleLogger(`${result?.message}`);
 
