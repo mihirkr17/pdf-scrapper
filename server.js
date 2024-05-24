@@ -59,7 +59,28 @@ app.use(require("./routes/route"));
 
       const scheduleJobTime = scheduleTimeLabel === "minutes" ? `*/${scheduleTime} * * * *` : `0 */${scheduleTime} * * *`;
 
-      const result = await init();
+      // const categoryList = constant?.categoryItems?.split(",").map(item => {
+      //    const chunk = item.split("&");
+      //    const id = chunk[0];
+      //    const lang = chunk[1];
+      //    const category = chunk[2];
+
+      //    if (!(/[0-9]/).test(id)) {
+      //       throw new Error("Category id must be numbers.");
+      //    }
+
+      //    if (!["English", "Spanish", "Italian", "Portuguese", "Chinese", "Japanese", "French"].includes(lang)) {
+      //       throw new Error(`Invalid language format. Language should be "English", "Spanish", "Italian", "Portuguese", "Chinese", "Japanese", "French"`);
+      //    }
+
+      //    if (!category) {
+      //       throw new Error(`Required category name.`);
+      //    }
+
+      //    return { id: parseInt(id), lang, title: category };
+      // })
+
+      const result =  await init(categoryList);
 
       consoleLogger(`${result?.message}`);
 

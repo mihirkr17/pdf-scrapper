@@ -17,8 +17,9 @@ const { consoleLogger, extractMatchInfo,
 
 
 
-async function init() {
+async function init(categoryList) {
    try {
+
       consoleLogger(`Script started for ${constant?.clientDomainName}.`);
 
       const currentYear = new Date().getFullYear();
@@ -74,76 +75,81 @@ async function init() {
 
             const pdfTextContents = await downloadPDF(pdfNoteUrl);
 
-            if (pdfTextContents) {
-               consoleLogger(`Successfully got PDF contents.`);
+            if (!pdfTextContents) {
+               continue;
+            }
 
-               // Extracting match details from pdf contents | basically it returns [Array];
-               const contents = extractMatchInfo(pdfTextContents);
+            consoleLogger(`Successfully got PDF texts.`);
 
-               consoleLogger(`Pdf downloaded and extracted contents successfully.`);
+            // Extracting match details from pdf contents | basically it returns [Array];
+            const contents = extractMatchInfo(pdfTextContents);
 
-               if (Array.isArray(contents) && contents.length >= 1) {
+            if (!Array.isArray(contents) || contents.length === 0) {
+               continue;
+            }
 
-                  for (const content of contents) {
-                     try {
-                        const playerOne = content?.player1;
-                        const playerTwo = content?.player2;
-                        const player1slug = content?.player1slug;
-                        const player2slug = content?.player2slug;
-                        const text = content?.content;
-                        const nameOfEvent = content?.eventName;
-                        const shortDateOfEvent = content?.eventShortDate;
-                        const dayOfEvent = content?.eventDay;
-                        const addressOfEvent = content?.eventAddress;
-                        const roundOfEvent = content?.round || null;
+            consoleLogger(`Pdf downloaded and extracted contents successfully.`);
 
-                        if (!playerOne || !playerTwo || !nameOfEvent) {
-                           throw new Error(`Some fields are missing.`);
-                        }
+            for (const content of contents) {
+               const playerOne = content?.player1;
+               const playerTwo = content?.player2;
+               const player1slug = content?.player1slug;
+               const player2slug = content?.player2slug;
+               const text = content?.content;
+               const nameOfEvent = content?.eventName;
+               const shortDateOfEvent = content?.eventShortDate;
+               const dayOfEvent = content?.eventDay;
+               const addressOfEvent = content?.eventAddress;
+               const roundOfEvent = content?.round || null;
 
-                        const title = capitalizeFirstLetterOfEachWord(`${nameOfEvent} Predictions: ${playerOne} vs ${playerTwo} - ${shortDateOfEvent}`);
+               if (!playerOne || !playerTwo || !nameOfEvent) {
+                  consoleLogger(`Some fields are missing.`);
+                  continue;
+               }
 
-                        consoleLogger(`Generating slug for "${title}"`);
-                        const slug = slugMaker(title);
-                        consoleLogger(`Slug generated: ${slug}`);
+               const title = capitalizeFirstLetterOfEachWord(`${nameOfEvent} Predictions: ${playerOne} vs ${playerTwo} - ${shortDateOfEvent}`);
 
-                        // Checking post availability in the wordpress post by rest api;
-                        const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
+               const slug = slugMaker(title);
+               try {
+                  // Checking post availability in the wordpress post by rest api;
+                  const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
 
-                        if (!isUniquePost) {
+                  if (isUniquePost) {
+                     consoleLogger(`Post already exist for ${slug}.`);
+                     continue;
+                  }
 
-                           consoleLogger(`Starting ${title}.`);
+                  consoleLogger(`Starting ${slug}.`);
 
-                           let playerOneMedia = {}, playerTwoMedia = {};
-                           playerOneMedia = await getMediaIdOfWP(constant.mediaUri(player1slug), token);
-                           playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(player2slug), token);
+                  let playerOneMedia = {}, playerTwoMedia = {};
 
-                           if (!playerOneMedia?.mediaId) {
-                              playerOneMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 10) + 1}`), token);
-                           }
+                  playerOneMedia = await getMediaIdOfWP(constant.mediaUri(player1slug), token);
+                  playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(player2slug), token);
 
-                           if (!playerTwoMedia?.mediaId) {
-                              playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 10) + 1}`), token);
-                           }
+                  if (!playerOneMedia?.mediaId) {
+                     playerOneMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 10) + 1}`), token);
+                  }
 
-                           // It returns tags ids like [1, 2, 3];
-                           const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOne, playerTwo, nameOfEvent], token);
+                  if (!playerTwoMedia?.mediaId) {
+                     playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 10) + 1}`), token);
+                  }
 
-                           consoleLogger("Paraphrase starting...");
+                  // It returns tags ids like [1, 2, 3];
+                  const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOne, playerTwo, `ATP ${nameOfEvent}`], token);
 
-                           const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(text));
+                  consoleLogger("Paraphrase starting...");
+                  const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(text));
+                  consoleLogger("Paraphrased done.");
 
-                           consoleLogger("Paraphrased done.");
-
-                           const p1 = `<p>
+                  const p1 = `<p>
                                        The 2024 ${nameOfEvent} continues with plenty of interesting matches on the ${dayOfEvent} schedule. 
                                        Let's have a look at all the career, performance and head-to-head stats for the match and find out if ${playerOne} or ${playerTwo} is expected to win.
                                     </p>`;
 
-                           // Making html contents
-                           const htmlContent = `
+                  // Making html contents
+                  const htmlContent = `
                               <div style="padding-bottom: 5px;">
-                                 <h2 style="margin-top: unset;">${nameOfEvent}</h2>
+                                 <h2 style="margin-top: unset;">ATP ${nameOfEvent}</h2>
                                  <p>${content?.eventFullDate}, ${addressOfEvent}.</p>
                               </div>
 
@@ -191,37 +197,33 @@ async function init() {
                               `;
 
 
-                           // finally making a post request by wordpress rest api 
-                           await createPostOfWP(constant?.postUri, token, {
-                              title,
-                              slug,
-                              content: htmlContent,
-                              status: constant?.postStatus,
-                              author: constant?.authorId,
-                              tags: tagIds,
-                              featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
-                              categories: [categoryId]
-                           });
+                  // finally making a post request by wordpress rest api 
+                  consoleLogger(`Post creating...`);
+                  await createPostOfWP(constant?.postUri, token, {
+                     title,
+                     slug,
+                     content: htmlContent,
+                     status: constant?.postStatus,
+                     author: constant?.authorId,
+                     tags: tagIds,
+                     featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
+                     categories: [categoryId]
+                  });
+                  consoleLogger(`Post created for ${slug}.`);
 
-                           consoleLogger(`Post created for ${slug}.`);
+                  postCounter += 1;
 
-                           postCounter += 1;
+                  await delay(3000);
 
-                           await delay();
-                        } else {
-                           consoleLogger(`Post already exist for ${slug}.`);
-                        }
-                     } catch (error) {
-                        consoleLogger(`Error Inside Loop: ${error?.message} Skipping this post.`);
-                        await delay(4000);
-                        continue;
-                     }
-                  }
-
-                  await delay(1000);
+               } catch (error) {
+                  consoleLogger(`Error Inside Loop: ${error?.message} Skipping this post.`);
+                  await delay(4000);
+                  continue;
                }
-               indexOfPdf++;
             }
+
+            await delay(1000);
+            indexOfPdf++;
          } catch (error) {
             consoleLogger(`Error processing mediaNoteUrl: ${error.message}`);
             await delay(4000);

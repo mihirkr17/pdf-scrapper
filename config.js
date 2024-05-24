@@ -26,7 +26,8 @@ const constant = {
    postStatusAll: ["publish", "future", "draft", "pending", "private"],
    postUri: "",
    authorId: process.env.AUTHOR_ID,
-   postStatus: process.env.POST_STATUS
+   postStatus: process.env.POST_STATUS,
+   categoryItems: process.env.CATEGORY
 };
 
 // Set properties that depend on other properties
