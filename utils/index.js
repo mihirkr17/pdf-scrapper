@@ -46,11 +46,22 @@ function retryOperation(func, retries = 5) {
 }
 
 function slugMaker(str) {
-   return str.toLowerCase()
-      .replace(/[^a-z0-9-_\s]/g, '').trim()
-      .replace(/\s+/g, '-')
-      .replace(/-{2,}/g, '-')
-      .replace(/^-+|-+$/g, '');
+   // Convert the string to lowercase
+   let slug = str.toLowerCase();
+
+   // Replace spaces with hyphens
+   slug = slug.replace(/\s+/g, '-');
+
+   // Remove special characters but preserve specific scripts
+   slug = slug.replace(/[^a-z0-9\-\u0900-\u097F\u0400-\u04FF\u0370-\u03FF\u0600-\u06FF\u3040-\u30FF\u4E00-\u9FFF\u3400-\u4DBF]+/g, '');
+
+   // Trim any leading or trailing hyphens
+   slug = slug.replace(/^-+|-+$/g, '');
+
+   // Handle consecutive hyphens
+   slug = slug.replace(/-{2,}/g, '-');
+
+   return slug;
 }
 
 // Creating file asynchronously.

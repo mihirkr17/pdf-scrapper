@@ -83,13 +83,23 @@ class ExcelManager {
 
          for (let i = startFrom; i <= rowCount; i++) {
             const row = this.worksheet.getRow(i);
+            const colA = row.getCell("A");
+            const colB = row.getCell("B");
+            const colC = row.getCell("C");
+            const colD = row.getCell("D");
+            const colE = row.getCell("E");
+            const colF = row.getCell("F");
+            const colG = row.getCell("G");
+
 
             excelRows.push({
-               language: row.getCell("A").value || null,
-               title: row.getCell("B").value || null,
-               C: row.getCell("C").value || null,
-               D: row.getCell("D").value || null,
-               paraphraseCommand: row.getCell("E").value || null,
+               language: colA?.text || colA.value || null,
+               languageCode: colB?.text || colB.value || null,
+               category: colC?.text || colC?.value || null,
+               title: colD?.text || colD?.value || null,
+               contents: colE?.text || colE?.value || null,
+               tags: colF?.text || colF?.value || null,
+               eventName: colG?.text || colG?.value || null,
             })
          }
 

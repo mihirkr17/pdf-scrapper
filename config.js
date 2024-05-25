@@ -20,8 +20,8 @@ const constant = {
    postExistUri: function (slug = "") {
       return `${constant.clientDomainName}/wp-json/wp/v2/posts?status=any&slug=${slug}`
    },
-   paraphrasedCommand: function (content) {
-      return `Reword/Rephrase word by word using paragraphs "${content}"`;
+   paraphrasedCommand: function (language, content) {
+      return `Reword/Rephrase word by word using paragraphs in ${language} "${content}"`;
    },
    postStatusAll: ["publish", "future", "draft", "pending", "private"],
    postUri: "",
