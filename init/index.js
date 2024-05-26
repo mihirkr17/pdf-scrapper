@@ -54,7 +54,7 @@ async function init() {
       let indexOfPdf = 1;
       let postCounter = 0;
 
-      for (const mediaNoteUrl of mediaNoteUrls) {
+      for (const mediaNoteUrl of mediaNoteUrls.slice(7, 8)) {
 
          try {
 
