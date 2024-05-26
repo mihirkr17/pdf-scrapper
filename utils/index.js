@@ -5,7 +5,7 @@ const fetch = (...args) =>
 
 const delay = (ms = 2000) => new Promise(resolve => setTimeout(resolve, ms));
 
-const consoleLogger = (msg = "") => (console.log(`[${new Date(Date.now()).toLocaleTimeString()}] ${msg}`));
+const consoleLogger = (msg = "") => (console.log(`[${new Date(Date.now()).toLocaleTimeString('en-US', {timeZone: "UTC"})}] ${msg}`));
 
 function getSurnameOfPlayer(fullName) {
    const nameParts = fullName.split(' ');

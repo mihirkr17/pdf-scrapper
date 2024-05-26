@@ -23,6 +23,8 @@ async function init() {
    try {
       const resources = postTemplate;
 
+
+
       if (!resources || !Array.isArray(resources)) {
          throw new Error(`Resource not found.`);
       }
@@ -54,7 +56,7 @@ async function init() {
       let indexOfPdf = 1;
       let postCounter = 0;
 
-      for (const mediaNoteUrl of mediaNoteUrls.slice(7, 8)) {
+      for (const mediaNoteUrl of mediaNoteUrls) {
 
          try {
 
@@ -148,9 +150,12 @@ async function init() {
                         }
 
                         consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}.`);
-                        const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventTag], token);
 
-                        await delay();
+                        consoleLogger("Tags generating...");
+                        const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventTag], token);
+                        consoleLogger(`Tags generated. Ids: ${tagIds}`);
+
+                        await delay(1000);
 
                         consoleLogger("Paraphrase starting...");
                         const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(resource?.language, text));
@@ -176,25 +181,25 @@ async function init() {
                            slug,
                            content: htmlContent,
                            status: constant?.postStatus,
-                           author: constant?.authorId,
+                           author: parseInt(constant?.authorId),
                            tags: tagIds,
                            featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
                            categories: [categoryId]
                         });
-                        consoleLogger(`Post created.`);
+                        consoleLogger(`Post created successfully.`);
 
                         postCounter += 1;
-                        await delay(3000);
+                        await delay(1000);
                      } catch (error) {
-                        consoleLogger(error?.message);
-                        await delay();
+                        consoleLogger(`Error In Language Model: ${error?.message}.`);
+                        await delay(1000);
                         continue;
                      }
                   }
-
+                  await delay(1000);
                } catch (error) {
-                  consoleLogger(`Error Inside Loop: ${error?.message} Skipping this post.`);
-                  await delay(3000);
+                  consoleLogger(`Error In Contents Model: ${error?.message}.`);
+                  await delay(1000);
                   continue;
                }
             }
@@ -202,8 +207,8 @@ async function init() {
             await delay();
             indexOfPdf++;
          } catch (error) {
-            consoleLogger(`Error processing mediaNoteUrl: ${error.message}`);
-            await delay(4000);
+            consoleLogger(`Error In mediaNoteUrl Model: ${error.message}.`);
+            await delay(1000);
             continue;
          }
       }

@@ -2,7 +2,7 @@ module.exports = {
    apps: [
       {
          name: 'pdf-scrapper',
-         script: 'server.js',
+         script: 'app.js',
          instances: 1,
          watch: true,
          exec_mode: "cluster",

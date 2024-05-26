@@ -2,10 +2,10 @@
   "name": "pdf-scrapper",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js",
+    "start": "node app.js",
     "start1": "pm2-runtime start ecosystem.config.js"
   },
   "keywords": [],

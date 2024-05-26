@@ -2,5 +2,5 @@
    "watch": ["*.js"],
    "ignore": ["configuration.json"],
    "ext": "js",
-   "exec": "node server.js"
+   "exec": "node app.js"
  }
