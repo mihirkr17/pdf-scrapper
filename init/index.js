@@ -23,6 +23,12 @@ async function init() {
    try {
       const resources = postTemplate;
 
+      if (!resources || !Array.isArray(resources)) {
+         throw new Error(`Resource not found.`);
+      }
+
+      consoleLogger("Resource found.");
+
       consoleLogger(`Script started for ${constant?.clientDomainName}.`);
 
       const currentYear = new Date().getFullYear();
@@ -48,7 +54,7 @@ async function init() {
       let indexOfPdf = 1;
       let postCounter = 0;
 
-      for (const mediaNoteUrl of mediaNoteUrls.slice(0, 1)) {
+      for (const mediaNoteUrl of mediaNoteUrls) {
 
          try {
 
@@ -113,10 +119,14 @@ async function init() {
                   const imageWrapperHtml = imgWrapper([playerOneMedia, playerTwoMedia], playerOneSurname, playerTwoSurname);
 
                   for (const resource of resources) {
+                     if (!resource?.categoryId || !resource?.category || !resource?.language) {
+                        continue;
+                     }
+
                      const categoryId = resource?.categoryId;
                      const playerOneTag = resource?.tags?.replace("name", playerOne);
                      const playerTwoTag = resource?.tags?.replace("name", playerTwo);
-                     const eventNameFullNew = resource?.eventName ? resource?.eventName + nameOfEvent : nameOfEvent;
+                     const eventTag = nameOfEvent + " " + resource?.category;
 
                      const newTitle = resource?.title?.replace("nameOfEvent", nameOfEvent)
                         ?.replace("playerOne", playerOne)
@@ -137,8 +147,8 @@ async function init() {
                            continue;
                         }
 
-                        consoleLogger(`Starting post for ${resource?.language} Slug: ${slug}.`);
-                        const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventNameFullNew], token);
+                        consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}.`);
+                        const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventTag], token);
 
                         await delay();
 
@@ -184,12 +194,12 @@ async function init() {
 
                } catch (error) {
                   consoleLogger(`Error Inside Loop: ${error?.message} Skipping this post.`);
-                  await delay(4000);
+                  await delay(3000);
                   continue;
                }
             }
 
-            await delay(1000);
+            await delay();
             indexOfPdf++;
          } catch (error) {
             consoleLogger(`Error processing mediaNoteUrl: ${error.message}`);
