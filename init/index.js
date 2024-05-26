@@ -18,12 +18,16 @@ const { consoleLogger, extractMatchInfo,
 } = require("../utils");
 
 
+const translate = (...args) =>
+   import('translate').then(({ default: fetch }) => fetch(...args));
+
+translate.engine = 'libre';
+translate.key = process.env.LIBRE_TRANSLATE_KEY;
+
 
 async function init() {
    try {
       const resources = postTemplate;
-
-
 
       if (!resources || !Array.isArray(resources)) {
          throw new Error(`Resource not found.`);
@@ -56,7 +60,7 @@ async function init() {
       let indexOfPdf = 1;
       let postCounter = 0;
 
-      for (const mediaNoteUrl of mediaNoteUrls) {
+      for (const mediaNoteUrl of mediaNoteUrls.slice(-1)) {
 
          try {
 
@@ -88,18 +92,17 @@ async function init() {
                const player1slug = content?.player1slug;
                const player2slug = content?.player2slug;
                const text = content?.content;
-               const nameOfEvent = content?.eventName;
-               const shortDateOfEvent = content?.eventShortDate;
-               const dayOfEvent = content?.eventDay;
-               const addressOfEvent = content?.eventAddress;
-               const roundOfEvent = content?.round || null;
+               const eventName = content?.eventName;
+               const eventDate = content?.eventDate;
+               const eventDay = content?.eventDay;
+               const eventAddress = content?.eventAddress;
+               const eventRound = content?.round || null;
+               const eventHeadingTwo = content?.eventHeadingTwo;
                const leads = content?.leads;
-               const eventFullDate = content?.eventFullDate;
                const playerOneSurname = getSurnameOfPlayer(playerOne);
                const playerTwoSurname = getSurnameOfPlayer(playerTwo);
 
-
-               if (!playerOne || !playerTwo || !nameOfEvent) {
+               if (!playerOne || !playerTwo || !eventName) {
                   consoleLogger(`Some fields are missing.`);
                   continue;
                }
@@ -128,20 +131,28 @@ async function init() {
                      const categoryId = resource?.categoryId;
                      const playerOneTag = resource?.tags?.replace("name", playerOne);
                      const playerTwoTag = resource?.tags?.replace("name", playerTwo);
-                     const eventTag = nameOfEvent + " " + resource?.category;
-
-                     const newTitle = resource?.title?.replace("nameOfEvent", nameOfEvent)
-                        ?.replace("playerOne", playerOne)
-                        ?.replace("playerTwo", playerTwo)
-                        ?.replace("shortDateOfEvent", shortDateOfEvent);
-
-                     // Capitalize first letter of each words
-                     const title = capitalizeFirstLetterOfEachWord(newTitle);
-
-                     // Making slug from title
-                     const slug = slugMaker(title);
+                     const eventTag = eventName + " " + resource?.category;
 
                      try {
+
+                        const [eventHeadingTwoTranslate, eventAddressTranslate, eventDayTranslate, eventDateTranslate] = await Promise.all([
+                           translate(eventHeadingTwo, { from: 'en', to: languageCode }),
+                           translate(eventAddress, { from: 'en', to: languageCode }),
+                           translate(eventDay, { from: 'en', to: languageCode }),
+                           translate(eventDate, { from: 'en', to: languageCode }),
+                        ]);
+
+                        const newTitle = resource?.title?.replace("eventName", eventName)
+                           ?.replace("playerOne", playerOne)
+                           ?.replace("playerTwo", playerTwo)
+                           ?.replace("eventDate", eventDateTranslate);
+
+                        // Capitalize first letter of each words
+                        const title = capitalizeFirstLetterOfEachWord(newTitle);
+
+                        // Making slug from title
+                        const slug = slugMaker(title);
+
                         const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
 
                         if (isUniquePost) {
@@ -155,21 +166,19 @@ async function init() {
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventTag], token);
                         consoleLogger(`Tags generated. Ids: ${tagIds}`);
 
-                        await delay(1000);
-
                         consoleLogger("Paraphrase starting...");
                         const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(resource?.language, text));
                         consoleLogger("Paraphrased done.");
 
-                        const htmlContent = resource?.contents(nameOfEvent,
+                        const htmlContent = resource?.contents(eventName,
                            leads,
-                           addressOfEvent,
+                           eventAddressTranslate,
                            playerOne,
                            playerTwo,
-                           shortDateOfEvent,
-                           eventFullDate,
-                           roundOfEvent,
-                           dayOfEvent,
+                           eventDateTranslate,
+                           eventHeadingTwoTranslate,
+                           eventRound,
+                           eventDayTranslate,
                            paraphrasedBlog,
                            player1slug,
                            player2slug,

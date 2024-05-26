@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js",
+    "start": "nodemon app.js",
     "start1": "pm2-runtime start ecosystem.config.js"
   },
   "keywords": [],
@@ -33,6 +33,7 @@
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "slug": "^9.1.0",
-    "slugify": "^1.6.6"
+    "slugify": "^1.6.6",
+    "translate": "^3.0.0"
   }
 }

@@ -5,7 +5,7 @@ const fetch = (...args) =>
 
 const delay = (ms = 2000) => new Promise(resolve => setTimeout(resolve, ms));
 
-const consoleLogger = (msg = "") => (console.log(`[${new Date(Date.now()).toLocaleTimeString('en-US', {timeZone: "UTC"})}] ${msg}`));
+const consoleLogger = (msg = "") => (console.log(`[${new Date(Date.now()).toLocaleTimeString('en-US', { timeZone: "UTC" })}] ${msg}`));
 
 function getSurnameOfPlayer(fullName) {
    const nameParts = fullName.split(' ');
@@ -201,18 +201,34 @@ function findPlayerNames(inputString) {
 
 
 function extractMatchInfo(text) {
-
    const splittedTexts = text.split("\n").filter(e => e?.trim()) //.split(/\s+vs\s+/);
 
    let eventHeader = {}, mainResult = "", startRecording = false, headRecord = false;
 
-   const atpMediaNoteReplaceRegex = /[\s–|-] ATP MEDIA NOTES/;
-   const dayRegex = /Day (\d+)/gi;
-   const dateLineRegex = /\s–|-\s/g;
+   // const atpMediaNoteReplaceRegex = /[\s–|-] ATP MEDIA NOTES/;
+   // const dayRegex = /Day (\d+)/gi;
+   // const dateLineRegex = /\s–|-\s/g;
+
+   let dayDateString;
+   let placeString;
+   let eventNameString;
 
    for (let i = 0; i < splittedTexts.length; i++) {
 
       const line = splittedTexts[i].trim();
+
+      if ((/(ATP MEDIA NOTES|\d ROLAND GARROS)/).test(line)) {
+         eventNameString = line;
+      }
+
+      if ((/(DAY \d MEDIA NOTES | \DAY \d)/g).test(line)) {
+         dayDateString = line;
+      }
+
+      if ((/(France|Switzerland|Argentina|Australia|Austria|Belgium|Brazil|Canada|China|Croatia|Germany|India|Italy|Japan|Mexico|Morocco|Netherlands|New Zealand|Portugal|Qatar|Russia|Spain|Sweden|UAE|United Kingdom|United States) \|/i).test(line)) {
+         placeString = line;
+      }
+
 
       if (line.includes(" vs ") && !line.includes("NOTE:")) {
          startRecording = true;
@@ -222,31 +238,42 @@ function extractMatchInfo(text) {
       }
 
       if (startRecording) {
-
          if (headRecord) {
             mainResult += "breakHere";
          }
          mainResult += (line + "\n");
       }
 
-      if (line.includes("ATP MEDIA NOTES")) {
-         const dateLine = splittedTexts[i + 1];
-         const evDate = dateLine && dateLine.trim().split(dateLineRegex);
-         const addressLine = splittedTexts[i + 2];
+      // if (line.includes("ATP MEDIA NOTES")) {
+      //    const dateLine = splittedTexts[i + 1];
+      //    const evDate = dateLine && dateLine.trim().split(dateLineRegex);
+      //    const addressLine = splittedTexts[i + 2];
 
-         const dayMatch = evDate[0] && evDate[0].match(dayRegex);
+      //    const dayMatch = evDate[0] && evDate[0].match(dayRegex);
 
-         eventHeader.eventDay = dayMatch ? dayMatch?.toString() : "";
-         eventHeader.eventNameFull = line ? line : "";
-         eventHeader.eventShortDate = evDate[1] ? evDate[1].trim() : "";
-         eventHeader.eventName = line ? line.replace(atpMediaNoteReplaceRegex, "")?.trim() : "";
-         eventHeader.eventFullDate = dateLine ? dateLine.trim() : "";
-         eventHeader.eventAddress = addressLine ? addressLine?.split(" | ").slice(0, -1).join(", ").trim() : "";
-      }
+      //    eventHeader.eventDay = dayMatch ? dayMatch?.toString() : "";
+      //    eventHeader.eventNameFull = line ? line : "";
+      //    eventHeader.eventShortDate = evDate[1] ? evDate[1].trim() : "";
+      //    eventHeader.eventName = line ? line.replace(atpMediaNoteReplaceRegex, "")?.trim() : "";
+      //    eventHeader.eventFullDate = dateLine ? dateLine.trim() : "";
+      //    eventHeader.eventAddress = addressLine ? addressLine?.split(" | ").slice(0, -1).join(", ").trim() : "";
+      // }
    }
+
+
+   // new variables
+   const eventDay = dayDateString?.trim().match(/DAY \d/)[0];
+   const eventDate = dayDateString?.trim().match(/([A-Za-z]+) (\d{1,2}) ([A-Za-z]+) (\d{4})/)[0];
+   placeString = placeString.split(" | ");
+   const eventAddress = placeString?.slice(0, placeString.length - 1)?.join(", ");
+   const eventName = eventNameString?.split(/[–|-]/)[0];
+   const eventHeadingTwo = `${eventDay} - ${eventDate}, ${eventAddress}.`
 
    let contentArray = mainResult.replace(/For the latest stats, facts and figures about the ATP Tour, follow @ATPMediaInfo on Twitter./g, "");
    contentArray = contentArray.split("breakHere").filter(e => e) || [];
+
+   //(/\b(Career highlights|NOTE:)\b/gi).test(e)
+   // console.log(contentArray);
 
    const result = [];
 
@@ -265,11 +292,11 @@ function extractMatchInfo(text) {
 
       const regexWith = `${leadKey}${leadValue ? " head to head " + leadValue + "." : "."}`;
       const slugRegex = /[-\s]/g;
-      const noteRegex = /NOTE/g;
+      // const noteRegex = /NOTE/g;
 
       const content = section.replace(regex, regexWith).trim() || "";
 
-      if (content && noteRegex.test(content)) {
+      if (content && (/\b(Career highlights|NOTE)\b/gi).test(content)) {
          result.push({
             content: content,
             player1: player?.player1,
@@ -278,7 +305,11 @@ function extractMatchInfo(text) {
             player2slug: player?.player2.toLowerCase().replace(slugRegex, "_"),
             leads: matchLeads,
             round: player?.round,
-            ...eventHeader
+            eventDate: eventDate?.trim(),
+            eventDay,
+            eventName: eventName?.trim(),
+            eventHeadingTwo: eventHeadingTwo?.trim(),
+            eventAddress: eventAddress?.trim()
          });
       }
    }
