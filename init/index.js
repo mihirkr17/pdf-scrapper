@@ -136,10 +136,10 @@ async function init() {
                      try {
 
                         const [eventHeadingTwoTranslate, eventAddressTranslate, eventDayTranslate, eventDateTranslate] = await Promise.all([
-                           translate(eventHeadingTwo, { from: 'en', to: languageCode }),
-                           translate(eventAddress, { from: 'en', to: languageCode }),
-                           translate(eventDay, { from: 'en', to: languageCode }),
-                           translate(eventDate, { from: 'en', to: languageCode }),
+                           translate(eventHeadingTwo, { from: 'en', to: resource?.languageCode }),
+                           translate(eventAddress, { from: 'en', to: resource?.languageCode }),
+                           translate(eventDay, { from: 'en', to: resource?.languageCode }),
+                           translate(eventDate, { from: 'en', to: resource?.languageCode }),
                         ]);
 
                         const newTitle = resource?.title?.replace("eventName", eventName)
