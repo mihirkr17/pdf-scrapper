@@ -40,7 +40,10 @@ async function init() {
       const currentYear = new Date().getFullYear();
 
       // Getting pdf first link
-      const mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
+      let mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
+
+      mediaNoteUrls = mediaNoteUrls.slice(14, 16);
+
 
       if (mediaNoteUrls.length <= 0) {
          return { message: `Sorry no media note urls available right now!` };
@@ -60,7 +63,7 @@ async function init() {
       let indexOfPdf = 1;
       let postCounter = 0;
 
-      for (const mediaNoteUrl of mediaNoteUrls.slice(-1)) {
+      for (const mediaNoteUrl of mediaNoteUrls) {
 
          try {
 
@@ -198,22 +201,18 @@ async function init() {
                         consoleLogger(`Post created successfully.`);
 
                         postCounter += 1;
-                        await delay(1000);
                      } catch (error) {
                         consoleLogger(`Error In Language Model: ${error?.message}.`);
                         await delay(1000);
                         continue;
                      }
                   }
-                  await delay(1000);
                } catch (error) {
                   consoleLogger(`Error In Contents Model: ${error?.message}.`);
                   await delay(1000);
                   continue;
                }
             }
-
-            await delay();
             indexOfPdf++;
          } catch (error) {
             consoleLogger(`Error In mediaNoteUrl Model: ${error.message}.`);
