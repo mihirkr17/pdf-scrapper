@@ -24,6 +24,85 @@ const translate = (...args) =>
 translate.engine = 'libre';
 translate.key = process.env.LIBRE_TRANSLATE_KEY;
 
+async function processResources(resources) {
+   await Promise.all(resources.map(async (resource) => {
+      if (!resource?.categoryId || !resource?.category || !resource?.language) {
+         return;
+      }
+
+      const categoryId = resource?.categoryId;
+      const playerOneTag = resource?.tags?.replace("name", playerOne);
+      const playerTwoTag = resource?.tags?.replace("name", playerTwo);
+      const eventTag = eventName + " " + resource?.category;
+
+      try {
+         const [eventHeadingTwoTranslate, eventAddressTranslate, eventDayTranslate, eventDateTranslate] = await Promise.all([
+            translate(eventHeadingTwo, { from: 'en', to: resource?.languageCode }),
+            translate(eventAddress, { from: 'en', to: resource?.languageCode }),
+            translate(eventDay, { from: 'en', to: resource?.languageCode }),
+            translate(eventDate, { from: 'en', to: resource?.languageCode }),
+         ]);
+
+         const newTitle = resource?.title?.replace("eventName", eventName)
+            ?.replace("playerOne", playerOne)
+            ?.replace("playerTwo", playerTwo)
+            ?.replace("eventDate", eventDateTranslate);
+
+         const title = capitalizeFirstLetterOfEachWord(newTitle);
+         const slug = slugMaker(title);
+
+         const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
+
+         if (isUniquePost) {
+            consoleLogger(`Post already exist for ${slug}.`);
+            return;
+         }
+
+         consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}.`);
+         consoleLogger("Tags generating...");
+
+         const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventTag], token);
+         consoleLogger(`Tags generated. Ids: ${tagIds}`);
+
+         consoleLogger("Paraphrase starting...");
+         const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(resource?.language, text));
+         consoleLogger("Paraphrased done.");
+
+         const htmlContent = resource?.contents(eventName,
+            leads,
+            eventAddressTranslate,
+            playerOne,
+            playerTwo,
+            eventDateTranslate,
+            eventHeadingTwoTranslate,
+            eventRound,
+            eventDayTranslate,
+            paraphrasedBlog,
+            player1slug,
+            player2slug,
+            imageWrapperHtml);
+
+         consoleLogger(`Post creating...`);
+         await createPostOfWP(constant?.postUri, token, {
+            title,
+            slug,
+            content: htmlContent,
+            status: constant?.postStatus,
+            author: parseInt(constant?.authorId),
+            tags: tagIds,
+            featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
+            categories: [categoryId]
+         });
+         consoleLogger(`Post created successfully.`);
+
+         postCounter += 1;
+      } catch (error) {
+         consoleLogger(`Error In Language Model: ${error?.message}.`);
+         await delay(1000);
+      }
+   }));
+}
+
 
 async function init() {
    try {
@@ -41,8 +120,6 @@ async function init() {
 
       // Getting pdf first link
       let mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
-
-      mediaNoteUrls = mediaNoteUrls.slice(14, 16);
 
 
       if (mediaNoteUrls.length <= 0) {
@@ -126,9 +203,9 @@ async function init() {
 
                   const imageWrapperHtml = imgWrapper([playerOneMedia, playerTwoMedia], playerOneSurname, playerTwoSurname);
 
-                  for (const resource of resources) {
+                  await Promise.all(resources.map(async (resource) => {
                      if (!resource?.categoryId || !resource?.category || !resource?.language) {
-                        continue;
+                        return;
                      }
 
                      const categoryId = resource?.categoryId;
@@ -137,7 +214,6 @@ async function init() {
                      const eventTag = eventName + " " + resource?.category;
 
                      try {
-
                         const [eventHeadingTwoTranslate, eventAddressTranslate, eventDayTranslate, eventDateTranslate] = await Promise.all([
                            translate(eventHeadingTwo, { from: 'en', to: resource?.languageCode }),
                            translate(eventAddress, { from: 'en', to: resource?.languageCode }),
@@ -150,30 +226,29 @@ async function init() {
                            ?.replace("playerTwo", playerTwo)
                            ?.replace("eventDate", eventDateTranslate);
 
-                        // Capitalize first letter of each words
                         const title = capitalizeFirstLetterOfEachWord(newTitle);
-
-                        // Making slug from title
                         const slug = slugMaker(title);
 
                         const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
 
                         if (isUniquePost) {
                            consoleLogger(`Post already exist for ${slug}.`);
-                           continue;
+                           return;
                         }
 
                         consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}.`);
-
                         consoleLogger("Tags generating...");
+
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventTag], token);
                         consoleLogger(`Tags generated. Ids: ${tagIds}`);
 
+                        await delay();
                         consoleLogger("Paraphrase starting...");
                         const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(resource?.language, text));
                         consoleLogger("Paraphrased done.");
 
-                        const htmlContent = resource?.contents(eventName,
+                        const htmlContent = resource?.contents(
+                           eventName,
                            leads,
                            eventAddressTranslate,
                            playerOne,
@@ -202,15 +277,13 @@ async function init() {
 
                         postCounter += 1;
                      } catch (error) {
-                        consoleLogger(`Error In Language Model: ${error?.message}.`);
+                        consoleLogger(`Error In Resource Model: ${error?.message}.`);
                         await delay(1000);
-                        continue;
                      }
-                  }
+                  }));
                } catch (error) {
                   consoleLogger(`Error In Contents Model: ${error?.message}.`);
                   await delay(1000);
-                  continue;
                }
             }
             indexOfPdf++;
