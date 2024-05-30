@@ -201,13 +201,14 @@ function findPlayerNames(inputString) {
 
 
 function extractMatchInfo(text) {
-   const splittedTexts = text.split("\n").filter(e => e?.trim()) //.split(/\s+vs\s+/);
+   // let regddd = /@ATPMediaInfo/gi;
+   // let reg2 = /Page \d+ of \d+/gi;
 
-   let eventHeader = {}, mainResult = "", startRecording = false, headRecord = false;
+   // console.log(text?.replace(/@ATPMediaInfo[\s\S]*?Page \d+ of \d+/gi, "")?.split("\n"));
+   const splittedTexts = text?.split("\n"); //?.filter(e => !regddd.test(e))?.filter(e => !reg2.test(e));
 
-   // const atpMediaNoteReplaceRegex = /[\s–|-] ATP MEDIA NOTES/;
-   // const dayRegex = /Day (\d+)/gi;
-   // const dateLineRegex = /\s–|-\s/g;
+   let mainResult = "", startRecording = false, headRecord = false;
+
 
    let dayDateString;
    let placeString;
@@ -215,7 +216,8 @@ function extractMatchInfo(text) {
 
    for (let i = 0; i < splittedTexts.length; i++) {
 
-      const line = splittedTexts[i].trim();
+      const line = splittedTexts[i].trim(); //?.replace(/@ATPMediaInfo.*For the latest stats/g, "")?.replace(/Page \d of \d/gi, "");
+
 
       if ((/(ATP MEDIA NOTES|\d ROLAND GARROS)/).test(line)) {
          eventNameString = line;
@@ -264,16 +266,13 @@ function extractMatchInfo(text) {
    // new variables
    const eventDay = dayDateString?.trim().match(/DAY \d/)[0];
    const eventDate = dayDateString?.trim().match(/([A-Za-z]+) (\d{1,2}) ([A-Za-z]+) (\d{4})/)[0];
-   placeString = placeString.split(" | ");
+   placeString = placeString?.split(" | ");
    const eventAddress = placeString?.slice(0, placeString.length - 1)?.join(", ");
    const eventName = eventNameString?.split(/[–|-]/)[0];
    const eventHeadingTwo = `${eventDay} - ${eventDate}, ${eventAddress}.`
 
-   let contentArray = mainResult.replace(/For the latest stats, facts and figures about the ATP Tour, follow @ATPMediaInfo on Twitter./g, "");
-   contentArray = contentArray.split("breakHere").filter(e => e) || [];
-
-   //(/\b(Career highlights|NOTE:)\b/gi).test(e)
-   // console.log(contentArray);
+   let contentArray = mainResult?.replace(/@ATPMediaInfo[\s\S]*?Page \d+ of \d+/gi, "")?.replace(/For the latest stats[\s\S]*?.com/gi, "");
+   contentArray = contentArray?.split("breakHere").filter(e => e) || [];
 
    const result = [];
 
@@ -292,9 +291,8 @@ function extractMatchInfo(text) {
 
       const regexWith = `${leadKey}${leadValue ? " head to head " + leadValue + "." : "."}`;
       const slugRegex = /[-\s]/g;
-      // const noteRegex = /NOTE/g;
 
-      const content = section.replace(regex, regexWith).trim() || "";
+      const content = section?.replace(regex, regexWith)?.trim() || "";
 
       if (content && (/\b(Career highlights|NOTE)\b/gi).test(content)) {
          result.push({

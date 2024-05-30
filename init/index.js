@@ -14,7 +14,8 @@ const { consoleLogger, extractMatchInfo,
    delay,
    slugMaker,
    capitalizeFirstLetterOfEachWord,
-   getSurnameOfPlayer
+   getSurnameOfPlayer,
+   createFileAsynchronously
 } = require("../utils");
 
 
@@ -24,84 +25,84 @@ const translate = (...args) =>
 translate.engine = 'libre';
 translate.key = process.env.LIBRE_TRANSLATE_KEY;
 
-async function processResources(resources) {
-   await Promise.all(resources.map(async (resource) => {
-      if (!resource?.categoryId || !resource?.category || !resource?.language) {
-         return;
-      }
+// async function processResources(resources) {
+//    await Promise.all(resources.map(async (resource) => {
+//       if (!resource?.categoryId || !resource?.category || !resource?.language) {
+//          return;
+//       }
 
-      const categoryId = resource?.categoryId;
-      const playerOneTag = resource?.tags?.replace("name", playerOne);
-      const playerTwoTag = resource?.tags?.replace("name", playerTwo);
-      const eventTag = eventName + " " + resource?.category;
+//       const categoryId = resource?.categoryId;
+//       const playerOneTag = resource?.tags?.replace("name", playerOne);
+//       const playerTwoTag = resource?.tags?.replace("name", playerTwo);
+//       const eventTag = eventName + " " + resource?.category;
 
-      try {
-         const [eventHeadingTwoTranslate, eventAddressTranslate, eventDayTranslate, eventDateTranslate] = await Promise.all([
-            translate(eventHeadingTwo, { from: 'en', to: resource?.languageCode }),
-            translate(eventAddress, { from: 'en', to: resource?.languageCode }),
-            translate(eventDay, { from: 'en', to: resource?.languageCode }),
-            translate(eventDate, { from: 'en', to: resource?.languageCode }),
-         ]);
+//       try {
+//          const [eventHeadingTwoTranslate, eventAddressTranslate, eventDayTranslate, eventDateTranslate] = await Promise.all([
+//             translate(eventHeadingTwo, { from: 'en', to: resource?.languageCode }),
+//             translate(eventAddress, { from: 'en', to: resource?.languageCode }),
+//             translate(eventDay, { from: 'en', to: resource?.languageCode }),
+//             translate(eventDate, { from: 'en', to: resource?.languageCode }),
+//          ]);
 
-         const newTitle = resource?.title?.replace("eventName", eventName)
-            ?.replace("playerOne", playerOne)
-            ?.replace("playerTwo", playerTwo)
-            ?.replace("eventDate", eventDateTranslate);
+//          const newTitle = resource?.title?.replace("eventName", eventName)
+//             ?.replace("playerOne", playerOne)
+//             ?.replace("playerTwo", playerTwo)
+//             ?.replace("eventDate", eventDateTranslate);
 
-         const title = capitalizeFirstLetterOfEachWord(newTitle);
-         const slug = slugMaker(title);
+//          const title = capitalizeFirstLetterOfEachWord(newTitle);
+//          const slug = slugMaker(title);
 
-         const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
+//          const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
 
-         if (isUniquePost) {
-            consoleLogger(`Post already exist for ${slug}.`);
-            return;
-         }
+//          if (isUniquePost) {
+//             consoleLogger(`Post already exist for ${slug}.`);
+//             return;
+//          }
 
-         consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}.`);
-         consoleLogger("Tags generating...");
+//          consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}.`);
+//          consoleLogger("Tags generating...");
 
-         const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventTag], token);
-         consoleLogger(`Tags generated. Ids: ${tagIds}`);
+//          const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventTag], token);
+//          consoleLogger(`Tags generated. Ids: ${tagIds}`);
 
-         consoleLogger("Paraphrase starting...");
-         const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(resource?.language, text));
-         consoleLogger("Paraphrased done.");
+//          consoleLogger("Paraphrase starting...");
+//          const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(resource?.language, text));
+//          consoleLogger("Paraphrased done.");
 
-         const htmlContent = resource?.contents(eventName,
-            leads,
-            eventAddressTranslate,
-            playerOne,
-            playerTwo,
-            eventDateTranslate,
-            eventHeadingTwoTranslate,
-            eventRound,
-            eventDayTranslate,
-            paraphrasedBlog,
-            player1slug,
-            player2slug,
-            imageWrapperHtml);
+//          const htmlContent = resource?.contents(eventName,
+//             leads,
+//             eventAddressTranslate,
+//             playerOne,
+//             playerTwo,
+//             eventDateTranslate,
+//             eventHeadingTwoTranslate,
+//             eventRound,
+//             eventDayTranslate,
+//             paraphrasedBlog,
+//             player1slug,
+//             player2slug,
+//             imageWrapperHtml);
 
-         consoleLogger(`Post creating...`);
-         await createPostOfWP(constant?.postUri, token, {
-            title,
-            slug,
-            content: htmlContent,
-            status: constant?.postStatus,
-            author: parseInt(constant?.authorId),
-            tags: tagIds,
-            featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
-            categories: [categoryId]
-         });
-         consoleLogger(`Post created successfully.`);
+//          consoleLogger(`Post creating...`);
+//          await createPostOfWP(constant?.postUri, token, {
+//             title,
+//             slug,
+//             content: htmlContent,
+//             status: constant?.postStatus,
+//             author: parseInt(constant?.authorId),
+//             tags: tagIds,
+//             featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
+//             categories: [categoryId]
+//          });
+//          consoleLogger(`Post created successfully.`);
 
-         postCounter += 1;
-      } catch (error) {
-         consoleLogger(`Error In Language Model: ${error?.message}.`);
-         await delay(1000);
-      }
-   }));
-}
+//          postCounter += 1;
+//       } catch (error) {
+//          consoleLogger(`Error In Language Model: ${error?.message}.`);
+//          await delay(1000);
+//       }
+//    }));
+// }
 
 
 async function init() {
@@ -140,7 +141,7 @@ async function init() {
       let indexOfPdf = 1;
       let postCounter = 0;
 
-      for (const mediaNoteUrl of mediaNoteUrls) {
+      for (const mediaNoteUrl of mediaNoteUrls.slice(0, 1)) {
 
          try {
 
@@ -164,6 +165,8 @@ async function init() {
                continue;
             }
 
+            consoleLogger(`Total ${contents.length} posts will create.`);
+
             consoleLogger(`Pdf downloaded and extracted contents successfully.`);
 
             for (const content of contents) {
@@ -181,6 +184,7 @@ async function init() {
                const leads = content?.leads;
                const playerOneSurname = getSurnameOfPlayer(playerOne);
                const playerTwoSurname = getSurnameOfPlayer(playerTwo);
+
 
                if (!playerOne || !playerTwo || !eventName) {
                   consoleLogger(`Some fields are missing.`);
@@ -236,7 +240,7 @@ async function init() {
                            return;
                         }
 
-                        consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}.`);
+                        consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}. ${eventDay}`);
                         consoleLogger("Tags generating...");
 
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventTag], token);
