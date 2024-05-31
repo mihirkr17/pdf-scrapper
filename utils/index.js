@@ -232,7 +232,7 @@ function extractMatchInfo(text) {
       }
 
 
-      if (line.includes(" vs ") && !line.includes("NOTE:")) {
+      if ((/ vs .+ (leads|First meeting|Tied)/gi).test(line) && !line.includes("NOTE:")) {
          startRecording = true;
          headRecord = true;
       } else {

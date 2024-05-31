@@ -167,6 +167,7 @@ async function init() {
 
             consoleLogger(`Total ${contents.length} posts will create.`);
 
+
             consoleLogger(`Pdf downloaded and extracted contents successfully.`);
 
             for (const content of contents) {
