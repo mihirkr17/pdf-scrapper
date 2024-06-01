@@ -37,7 +37,7 @@ const postTemplate = [
          </div>
          
          ${`<p>
-         The 2024 ${eventName} continues with plenty of interesting matches on the ${eventDay} schedule. 
+         The ${eventName} continues with plenty of interesting matches on the ${eventDay} schedule. 
          Let's have a look at all the career, performance and head-to-head stats for the match and find out if ${playerOne} or ${playerTwo} is expected to win.
          </p>`.replace(/\n/g, " ")}
          
@@ -112,7 +112,7 @@ const postTemplate = [
         </div>
         
         ${`<p>
-            El ${eventName} de 2024 continúa con muchos partidos interesantes en el calendario de ${eventDay}. 
+            El ${eventName} de continúa con muchos partidos interesantes en el calendario de ${eventDay}. 
             Echemos un vistazo a todas las estadísticas de carrera, rendimiento y enfrentamientos directos del partido y descubramos si se espera que ${playerOne} o ${playerTwo} ganen.
         </p>`.replace(/\n/g, " ")}
         
@@ -187,7 +187,7 @@ const postTemplate = [
      </div>
      
      ${`<p>
-         O ${eventName} 2024 continua com muitas partidas interessantes na programação do ${eventDay}. 
+         O ${eventName} continua com muitas partidas interessantes na programação do ${eventDay}. 
          Vamos dar uma olhada em todas as estatísticas de carreira, desempenho e confrontos diretos da partida e descobrir se ${playerOne} ou ${playerTwo} devem vencer.
      </p>`.replace(/\n/g, " ")}
      
@@ -262,7 +262,7 @@ const postTemplate = [
      </div>
      
      ${`<p>
-         Le ${eventName} 2024 se poursuit avec de nombreux matchs intéressants au programme du ${eventDay}. 
+         Le ${eventName} se poursuit avec de nombreux matchs intéressants au programme du ${eventDay}. 
          Jetons un coup d'œil à toutes les statistiques de carrière, de performance et d'affrontement du match et découvrons si ${playerOne} ou ${playerTwo} devrait gagner.
      </p>`.replace(/\n/g, " ")}
      
@@ -337,7 +337,7 @@ const postTemplate = [
      </div>
      
      ${`<p>
-         Das ${eventName} 2024 geht mit vielen interessanten Spielen im ${eventDay}-Zeitplan weiter. 
+         Das ${eventName} geht mit vielen interessanten Spielen im ${eventDay}-Zeitplan weiter. 
          Werfen wir einen Blick auf alle Karriere-, Leistungs- und Head-to-Head-Statistiken für das Spiel und finden wir heraus, ob ${playerOne} oder ${playerTwo} voraussichtlich gewinnen wird.
      </p>`.replace(/\n/g, " ")}
      
@@ -412,7 +412,7 @@ const postTemplate = [
          </div>
          
          ${`<p>
-         Il ${eventName} 2024 continua con tantissime partite interessanti nel programma di ${eventDay}. 
+         Il ${eventName} continua con tantissime partite interessanti nel programma di ${eventDay}. 
          Diamo un'occhiata a tutte le statistiche relative a carriera, prestazioni e testa a testa della partita e scopriamo se ci si aspetta che ${playerOne} o ${playerTwo} vincano.
          </p>`.replace(/\n/g, " ")}
          
@@ -486,7 +486,7 @@ const postTemplate = [
       </div>
       
       ${`<p>
-      ${eventName} 2024 będzie kontynuowane z mnóstwem interesujących meczów w harmonogramie ${eventDay}. 
+      ${eventName} będzie kontynuowane z mnóstwem interesujących meczów w harmonogramie ${eventDay}. 
       Rzućmy okiem na wszystkie statystyki dotyczące kariery, występów i bezpośrednich pojedynków w tym meczu i dowiedzmy się, czy wygra ${playerOne} czy ${playerTwo}.
       </p>`.replace(/\n/g, " ")}
       
@@ -562,7 +562,7 @@ const postTemplate = [
          </div>
          
          ${`<p>
-         De ${eventName} 2024 gaat verder met veel interessante wedstrijden op het ${eventDay} schema. 
+         De ${eventName} gaat verder met veel interessante wedstrijden op het ${eventDay} schema. 
          Laten we eens kijken naar alle carrière-, prestatie- en onderlinge statistieken voor de wedstrijd en kijken of ${playerOne} of ${playerTwo} naar verwachting zal winnen.
          </p>`.replace(/\n/g, " ")}
          
@@ -638,7 +638,7 @@ const postTemplate = [
          </div>
          
          ${`<p>
-         2024 ${eventName}, ${eventDay} programında birçok ilginç maçla devam ediyor. 
+         ${eventName}, ${eventDay} programında birçok ilginç maçla devam ediyor. 
          Maçın tüm kariyer, performans ve kafa kafaya istatistiklerine bir göz atalım ve ${playerOne}'ın mı yoksa ${playerTwo}'un mu kazanmasının beklendiğini öğrenelim.
          </p>`.replace(/\n/g, " ")}
          
@@ -714,7 +714,7 @@ const postTemplate = [
          </div>
          
          ${`<p>
-         2024 年 ${eventName} 的 ${eventDay} 日程安排中将继续举办大量有趣的比赛。 
+         年 ${eventName} 的 ${eventDay} 日程安排中将继续举办大量有趣的比赛。 
          让我们看一下比赛的所有职业生涯、表现和交锋统计数据，看看 ${playerOne} 或 ${playerTwo} 是否有望获胜。
          </p>`.replace(/\n/g, " ")}
          
@@ -790,7 +790,7 @@ const postTemplate = [
          </div>
          
          ${`<p>
-         يستمر حدث ${eventName} لعام 2024 مع الكثير من المباريات المثيرة للاهتمام وفقًا لجدول ${eventDay}. 
+         يستمر حدث ${eventName} لعام مع الكثير من المباريات المثيرة للاهتمام وفقًا لجدول ${eventDay}. 
          دعونا نلقي نظرة على جميع الإحصائيات المهنية والأداء والمواجهات المباشرة للمباراة ونكتشف ما إذا كان ${playerOne} أو ${playerTwo} من المتوقع أن يفوز.
          </p>`.replace(/\n/g, " ")}
          
@@ -866,7 +866,7 @@ const postTemplate = [
          </div>
          
          ${`<p>
-         2024 年の ${eventName} では、${eventDay} のスケジュールで興味深い試合が数多く行われます。 
+         年の ${eventName} では、${eventDay} のスケジュールで興味深い試合が数多く行われます。 
          試合のすべてのキャリア、パフォーマンス、対戦成績を見て、${playerOne} と ${playerTwo} のどちらが勝つと予想されるかを調べてみましょう。
          </p>`.replace(/\n/g, " ")}
          
@@ -942,7 +942,7 @@ const postTemplate = [
          </div>
          
          ${`<p>
-         ${eventName} 2024 года продолжается множеством интересных матчей в расписании ${eventDay}. 
+         ${eventName} года продолжается множеством интересных матчей в расписании ${eventDay}. 
          Давайте посмотрим на всю статистику карьеры, выступлений и личных встреч в матче и выясним, кто, как ожидается, выиграет: ${playerOne} или ${playerTwo}.
          </p>`.replace(/\n/g, " ")}
          
@@ -1015,7 +1015,7 @@ const postTemplate = [
       </div>
       
       ${`<p>
-         2024 ${eventName} ${eventDay} शेड्यूल पर बहुत सारे दिलचस्प मैचों के साथ जारी है। 
+         ${eventName} ${eventDay} शेड्यूल पर बहुत सारे दिलचस्प मैचों के साथ जारी है। 
          आइए मैच के सभी करियर, प्रदर्शन और आमने-सामने के आँकड़ों पर एक नज़र डालें और पता करें कि क्या ${playerOne} या ${playerTwo} के जीतने की उम्मीद है।
       </p>`.replace(/\n/g, " ")}
       

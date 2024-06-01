@@ -21,7 +21,7 @@ const constant = {
       return `${constant.clientDomainName}/wp-json/wp/v2/posts?status=any&slug=${slug}`
    },
    paraphrasedCommand: function (language, content) {
-      return `Rewrite this in ${language}, making the article as LONG AS POSSIBLE, all text in paragraph form backed up by facts from the original text, in an interesting tennis journalistic manner: ${content}`;
+      return `Rewrite this in ${language}, not adding extra facts that are not in this text, reply in paragraph form, in an interesting tennis journalistic manner with a long as possible reply: ${content}`;
    },
    postStatusAll: ["publish", "future", "draft", "pending", "private"],
    postUri: "",
