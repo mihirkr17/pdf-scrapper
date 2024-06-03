@@ -76,7 +76,7 @@ async function init(infos, mediaNoteUrls) {
 
             consoleLogger(`Pdf downloaded and extracted contents successfully.`);
 
-            for (const content of contents) {
+            for (const content of contents.slice(0, 1)) {
                const playerOne = content?.player1;
                const playerTwo = content?.player2;
                const player1slug = content?.player1slug;
@@ -114,9 +114,6 @@ async function init(infos, mediaNoteUrls) {
                      playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, `generic${Math.floor(Math.random() * 10) + 1}`), token);
                   }
 
-                  console.log(playerOneMedia, playerTwoMedia);
-
-                  return;
 
                   const imageWrapperHtml = imgWrapper([playerOneMedia, playerTwoMedia], playerOneSurname, playerTwoSurname, infos?.nick);
 
