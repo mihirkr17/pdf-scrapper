@@ -166,6 +166,11 @@ async function init(infos, mediaNoteUrls) {
                         consoleLogger("Tags generating...");
 
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri(infos?.domain), [playerOneTag, playerTwoTag, eventTag], token);
+
+                        if (!Array.isArray(tagIds)) {
+                           return;
+                        }
+
                         consoleLogger(`Tags generated. Ids: ${tagIds}`);
 
                         await delay();

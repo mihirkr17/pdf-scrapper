@@ -3,7 +3,8 @@ const {
    retryOperation,
    xhrGetRequest,
    httpsGetRequest,
-   delay
+   delay,
+   consoleLogger
 } = require("../utils");
 const { paraphraseBlogText } = require("./openAI");
 const runCheerio = require("./runCheerio");
@@ -44,6 +45,7 @@ async function getPostTagIdsOfWP(url, tags, token) {
 
             await delay();
          } catch (error) {
+            consoleLogger(`Error In getPostTagIdsOfWP: ${error?.message}`);
             throw new Error(`Error In getPostTagIdsOfWP: ${error?.message}`);
          }
       }
