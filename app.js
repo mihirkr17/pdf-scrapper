@@ -37,8 +37,8 @@ const { getPdfLinks } = require("./services");
          throw new Error(`ERROR: Post status must be set as "POST_STATUS=publish or future or draft or pending or private" in .env`);
       }
 
-      if (!constant?.authorId || !(/[0-9]/g).test(constant?.authorId)) {
-         throw new Error(`ERROR: Author id must be set as "AUTHOR_ID=12345" in .env`);
+      if (!constant?.authorIdSg || !(/[0-9]/g).test(constant?.authorIdSg) || !constant?.authorIdMs || !(/[0-9]/g).test(constant?.authorIdMs)) {
+         throw new Error(`ERROR: Author id must be set as "AUTHOR_ID_SG=12345 | AUTHOR_ID_MS=12345" in .env`);
       }
 
       // if (!["ON", "OFF"].includes(constant?.scheduleAction)) {
