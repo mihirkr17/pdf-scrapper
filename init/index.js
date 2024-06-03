@@ -103,16 +103,16 @@ async function init(infos, mediaNoteUrls) {
                try {
                   let playerOneMedia = {}, playerTwoMedia = {};
 
-                  playerOneMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, player1slug), token);
-                  playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, player2slug), token);
+                  // playerOneMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, player1slug), token);
+                  // playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, player2slug), token);
 
-                  if (!playerOneMedia?.mediaId) {
-                     playerOneMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, `generic${Math.floor(Math.random() * 10) + 1}`), token);
-                  }
+                  // if (!playerOneMedia?.mediaId) {
+                  //    playerOneMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, `generic${Math.floor(Math.random() * 10) + 1}`), token);
+                  // }
 
-                  if (!playerTwoMedia?.mediaId) {
-                     playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, `generic${Math.floor(Math.random() * 10) + 1}`), token);
-                  }
+                  // if (!playerTwoMedia?.mediaId) {
+                  //    playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, `generic${Math.floor(Math.random() * 10) + 1}`), token);
+                  // }
 
 
                   const imageWrapperHtml = imgWrapper([playerOneMedia, playerTwoMedia], playerOneSurname, playerTwoSurname, infos?.nick);
@@ -127,6 +127,7 @@ async function init(infos, mediaNoteUrls) {
                      const playerTwoTag = resource?.playerTag?.replace("#playerName", infos?.nick === "sg" ? playerTwo : playerTwoSurname);
                      const eventTag = resource?.eventTag?.replace("#eventName", infos?.nick === "sg" ? eventName : plainEventName);
 
+
                      try {
                         const [eventHeadingTwoTranslate, eventAddressTranslate, eventDayTranslate, eventDateTranslate] = await Promise.all([
                            translate(eventHeadingTwo, { from: 'en', to: resource?.languageCode }),
@@ -134,6 +135,8 @@ async function init(infos, mediaNoteUrls) {
                            translate(eventDay, { from: 'en', to: resource?.languageCode }),
                            translate(eventDate, { from: 'en', to: resource?.languageCode }),
                         ]);
+
+                      
 
                         let newTitle = "";
 
@@ -145,7 +148,7 @@ async function init(infos, mediaNoteUrls) {
                         }
 
                         if (infos?.nick === "ms") {
-                           newTitle = resource?.title?.replace("#eventName", eventName)
+                           newTitle = resource?.title?.replace("#eventName", plainEventName)
                               ?.replace("#playerOneSurname", playerOneSurname)
                               ?.replace("#playerTwoSurname", playerTwoSurname)
                               ?.replace("#eventYear", eventYear);
@@ -154,7 +157,7 @@ async function init(infos, mediaNoteUrls) {
 
                         const title = capitalizeFirstLetterOfEachWord(newTitle);
                         const slug = slugMaker(title);
-
+                      
                         const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(infos?.domain, slug), token);
 
                         if (isUniquePost) {
@@ -163,7 +166,7 @@ async function init(infos, mediaNoteUrls) {
                         }
 
                         consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}. ${eventDay}`);
-                        consoleLogger(`Tags generating for ${[playerOneTag, playerTwoTag, eventTag]}`);
+                        consoleLogger(`Tags generating for ${playerOneTag}, ${playerTwoTag}, ${eventTag}`);
 
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri(infos?.domain), [playerOneTag, playerTwoTag, eventTag], token);
 
