@@ -1,6 +1,6 @@
 const { constant } = require("../config");
-const postTemplate = require("../resource/postTemplate");
-const { getPdfLinks,
+const { postTemplateSg, postTemplateMs } = require("../resource/postTemplate");
+const {
    createPostOfWP,
    getPostTagIdsOfWP,
    getMediaIdOfWP,
@@ -24,9 +24,9 @@ const translate = (...args) =>
 translate.engine = 'libre';
 translate.key = process.env.LIBRE_TRANSLATE_KEY;
 
-async function init() {
+async function init(infos, mediaNoteUrls) {
    try {
-      const resources = postTemplate;
+      const resources = infos?.nick === "sg" ? postTemplateSg : postTemplateMs;
 
       if (!resources || !Array.isArray(resources)) {
          throw new Error(`Resource not found.`);
@@ -34,23 +34,10 @@ async function init() {
 
       consoleLogger("Resource found.");
 
-      consoleLogger(`Script started for ${constant?.clientDomainName}.`);
-
-      const currentYear = new Date().getFullYear();
-
-      // Getting pdf first link
-      let mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
-
-      const lengthOfMediaNoteLinks = mediaNoteUrls.length || 0;
-
-      if (lengthOfMediaNoteLinks <= 0) {
-         return { message: `Sorry no media note urls available right now!` };
-      }
-
-      consoleLogger(`Found ${lengthOfMediaNoteLinks} media note urls.`);
+      consoleLogger(`Script started for ${infos?.domain}.`);
 
       // Basic wordpress authentication
-      const token = constant?.restAuthToken;
+      const token = infos?.authToken;
 
       if (!token) {
          throw new Error(`Sorry! Auth token not found.`);
@@ -61,7 +48,7 @@ async function init() {
       let indexOfPdf = 1;
       let postCounter = 0;
 
-      for (const mediaNoteUrl of mediaNoteUrls.slice(0, 1)) {
+      for (const mediaNoteUrl of mediaNoteUrls) {
 
          try {
 
@@ -104,7 +91,9 @@ async function init() {
                const leads = content?.leads;
                const playerOneSurname = getSurnameOfPlayer(playerOne);
                const playerTwoSurname = getSurnameOfPlayer(playerTwo);
-
+               const yearMatch = eventDate.match(/\d{4}/);
+               const eventYear = yearMatch ? yearMatch[0] : new Date().getFullYear();
+               const plainEventName = eventName?.replace(/\d/g, '')?.trim();
 
                if (!playerOne || !playerTwo || !eventName) {
                   consoleLogger(`Some fields are missing.`);
@@ -114,18 +103,22 @@ async function init() {
                try {
                   let playerOneMedia = {}, playerTwoMedia = {};
 
-                  playerOneMedia = await getMediaIdOfWP(constant.mediaUri(player1slug), token);
-                  playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(player2slug), token);
+                  playerOneMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, player1slug), token);
+                  playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, player2slug), token);
 
                   if (!playerOneMedia?.mediaId) {
-                     playerOneMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 10) + 1}`), token);
+                     playerOneMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, `generic${Math.floor(Math.random() * 10) + 1}`), token);
                   }
 
                   if (!playerTwoMedia?.mediaId) {
-                     playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(`generic${Math.floor(Math.random() * 10) + 1}`), token);
+                     playerTwoMedia = await getMediaIdOfWP(constant.mediaUri(infos?.domain, `generic${Math.floor(Math.random() * 10) + 1}`), token);
                   }
 
-                  const imageWrapperHtml = imgWrapper([playerOneMedia, playerTwoMedia], playerOneSurname, playerTwoSurname);
+                  console.log(playerOneMedia, playerTwoMedia);
+
+                  return;
+
+                  const imageWrapperHtml = imgWrapper([playerOneMedia, playerTwoMedia], playerOneSurname, playerTwoSurname, infos?.nick);
 
                   await Promise.all(resources.map(async (resource) => {
                      if (!resource?.categoryId || !resource?.category || !resource?.language || !resource?.eventTag) {
@@ -133,9 +126,9 @@ async function init() {
                      }
 
                      const categoryId = resource?.categoryId;
-                     const playerOneTag = resource?.playerTag?.replace("#playerName", playerOne);
-                     const playerTwoTag = resource?.playerTag?.replace("#playerName", playerTwo);
-                     const eventTag = eventName + " " + resource?.eventTag;
+                     const playerOneTag = resource?.playerTag?.replace("#playerName", infos?.nick === "sg" ? playerOne : playerOneSurname);
+                     const playerTwoTag = resource?.playerTag?.replace("#playerName", infos?.nick === "sg" ? playerTwo : playerTwoSurname);
+                     const eventTag = resource?.eventTag?.replace("#eventName", infos?.nick === "sg" ? eventName : plainEventName);
 
                      try {
                         const [eventHeadingTwoTranslate, eventAddressTranslate, eventDayTranslate, eventDateTranslate] = await Promise.all([
@@ -145,15 +138,27 @@ async function init() {
                            translate(eventDate, { from: 'en', to: resource?.languageCode }),
                         ]);
 
-                        const newTitle = resource?.title?.replace("#eventName", eventName)
-                           ?.replace("#playerOne", playerOne)
-                           ?.replace("#playerTwo", playerTwo)
-                           ?.replace("#eventDate", eventDateTranslate);
+                        let newTitle = "";
+
+                        if (infos?.nick === "sg") {
+                           newTitle = resource?.title?.replace("#eventName", eventName)
+                              ?.replace("#playerOne", playerOne)
+                              ?.replace("#playerTwo", playerTwo)
+                              ?.replace("#eventDate", eventDateTranslate);
+                        }
+
+                        if (infos?.nick === "ms") {
+                           newTitle = resource?.title?.replace("#eventName", eventName)
+                              ?.replace("#playerOneSurname", playerOneSurname)
+                              ?.replace("#playerTwoSurname", playerTwoSurname)
+                              ?.replace("#eventYear", eventYear);
+                        }
+
 
                         const title = capitalizeFirstLetterOfEachWord(newTitle);
                         const slug = slugMaker(title);
 
-                        const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(slug), token);
+                        const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(infos?.domain, slug), token);
 
                         if (isUniquePost) {
                            consoleLogger(`Post already exist for ${slug}.`);
@@ -163,12 +168,13 @@ async function init() {
                         consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}. ${eventDay}`);
                         consoleLogger("Tags generating...");
 
-                        const tagIds = await getPostTagIdsOfWP(constant?.tagUri, [playerOneTag, playerTwoTag, eventTag], token);
+                        const tagIds = await getPostTagIdsOfWP(constant?.tagUri(infos?.domain), [playerOneTag, playerTwoTag, eventTag], token);
                         consoleLogger(`Tags generated. Ids: ${tagIds}`);
 
                         await delay();
                         consoleLogger("Paraphrase starting...");
-                        const paraphrasedBlog = await paraphraseContents(constant?.paraphrasedCommand(resource?.language, text));
+                        const chatgptCommand = infos?.chatgptCommand?.replace("#language", resource?.language)?.replace("#texts", text);
+                        const paraphrasedBlog = await paraphraseContents(chatgptCommand);
                         consoleLogger("Paraphrased done.");
 
                         const htmlContent = resource?.contents(
@@ -184,7 +190,10 @@ async function init() {
                            paraphrasedBlog,
                            player1slug,
                            player2slug,
-                           imageWrapperHtml);
+                           imageWrapperHtml, 
+                           playerOneSurname, 
+                           playerTwoSurname, 
+                           eventYear, plainEventName);
 
                         consoleLogger(`Post creating...`);
                         await createPostOfWP(constant?.postUri, token, {

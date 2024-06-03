@@ -11,6 +11,7 @@ const {
 // const path = require("path");
 const init = require("./init");
 const { constant } = require("./config");
+const { getPdfLinks } = require("./services");
 
 
 // const app = express();
@@ -60,9 +61,51 @@ const { constant } = require("./config");
       // const scheduleJobTime = scheduleTimeLabel === "minutes" ? `*/${scheduleTime} * * * *` : `0 */${scheduleTime} * * *`;
 
 
-      const result = await init();
+      const sites = [{
+         id: 1,
+         siteName: "https://www.stevegtennis.com/",
+         nick: "sg",
+         domain: constant?.domainSg,
+         authToken: constant?.authTokenSg,
+         chatgptCommand: "Rewrite this in #language, not adding extra facts that are not in this text, reply in paragraph form, in an interesting tennis journalistic manner with a long as possible reply: #texts"
+      }, {
+         id: 2,
+         siteName: "https://www.matchstat.com/",
+         nick: "ms",
+         domain: constant?.domainMs,
+         authToken: constant?.authTokenMs,
+         chatgptCommand: 'With your reply in #language, including all facts in this text, rewrite "#texts"'
+      }];
 
-      consoleLogger(`${result?.message}`);
+
+      const currentYear = new Date().getFullYear();
+
+      // Getting pdf first link
+      let mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
+
+      const lengthOfMediaNoteLinks = mediaNoteUrls.length || 0;
+
+      if (lengthOfMediaNoteLinks <= 0) {
+         consoleLogger(`Sorry no media note urls available right now!`);
+         return;
+      }
+
+      consoleLogger(`Found ${lengthOfMediaNoteLinks} media note urls.`);
+
+      for (const site of sites.slice(1, 2)) {
+         consoleLogger(`${site?.id}. Running ${site?.siteName}`);
+         const result = await init(site, mediaNoteUrls.slice(0, 1));
+
+         consoleLogger(`${result?.message} for ${site?.siteName}`);
+      }
+
+
+
+
+      // return;
+      // const result = await init();
+
+      // consoleLogger(`${result?.message}`);
 
 
       // schedule.scheduleJob(scheduleJobTime, async function () {

@@ -1,4 +1,4 @@
-const postTemplate = [
+const postTemplateSg = [
    {
       language: "English",
       languageCode: "en",
@@ -6,7 +6,7 @@ const postTemplate = [
       categoryId: 8996,
       title: "#eventName Predictions: #playerOne vs #playerTwo - #eventDate",
       playerTag: "#playerName Predictions",
-      eventTag: "ATP Tennis Predictions",
+      eventTag: "#eventName ATP Tennis Predictions",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -78,7 +78,7 @@ const postTemplate = [
       categoryId: 9262,
       title: "Pronósticos de #eventName: #playerOne vs #playerTwo - #eventDate",
       playerTag: "Pronósticos de #playerName",
-      eventTag: "Pronósticos De Tenis ATP",
+      eventTag: "#eventName Pronósticos De Tenis ATP",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -154,7 +154,7 @@ const postTemplate = [
       categoryId: 9263,
       title: "Palpites de #eventName: #playerOne vs #playerTwo - #eventDate",
       playerTag: "Palpites de #playerName",
-      eventTag: "Palpites Tênis ATP",
+      eventTag: "#eventName Palpites Tênis ATP",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -229,7 +229,7 @@ const postTemplate = [
       categoryId: 9264,
       title: "Pronostics #eventName: #playerOne contre #playerTwo - #eventDate",
       playerTag: "Pronostics #playerName",
-      eventTag: "Pronostics Tennis ATP",
+      eventTag: "#eventName Pronostics Tennis ATP",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -304,7 +304,7 @@ const postTemplate = [
       categoryId: 9265,
       title: "#eventName Tipps & Prognosen: #playerOne vs #playerTwo - #eventDate",
       playerTag: "#playerName Vorhersagen",
-      eventTag: "Tennis Tipps & Prognosen ATP",
+      eventTag: "#eventName Tennis Tipps & Prognosen ATP",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -378,7 +378,7 @@ const postTemplate = [
       categoryId: 9266,
       title: "Pronostici su #eventName: #playerOne vs #playerTwo - #eventDate",
       playerTag: "#playerName Pronostici",
-      eventTag: "Pronostici Tennis ATP",
+      eventTag: "#eventName Pronostici Tennis ATP",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -453,7 +453,7 @@ const postTemplate = [
       categoryId: 9267,
       title: "Prognozy #eventName: #playerOne vs #playerTwo - #eventDate",
       playerTag: "Prognozy #playerName",
-      eventTag: "Prognozy Tenis ATP",
+      eventTag: "#eventName Prognozy Tenis ATP",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -528,7 +528,7 @@ const postTemplate = [
       categoryId: 9268,
       title: "#eventName Voorspellingen Wedtips: #playerOne versus #playerTwo - #eventDate",
       playerTag: "#playerName Voorspellingen Wedtips",
-      eventTag: "Tennis Wedtips En Voorspellingen ATP",
+      eventTag: "#eventName Tennis Wedtips En Voorspellingen ATP",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -604,7 +604,7 @@ const postTemplate = [
       categoryId: 9269,
       title: "#eventName Tahminler: #playerOne vs #playerTwo - #eventDate",
       playerTag: "#playerName Tahminleri",
-      eventTag: "Tenis Tahminleri ATP",
+      eventTag: "#eventName Tenis Tahminleri ATP",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -680,7 +680,7 @@ const postTemplate = [
       categoryId: 9270,
       title: "#eventName 预测： #playerOne vs #playerTwo - #eventDate",
       playerTag: "#playerName 预测",
-      eventTag: "ATP 网球预测",
+      eventTag: "#eventName ATP 网球预测",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -756,7 +756,7 @@ const postTemplate = [
       categoryId: 9271,
       title: "`توقعات #eventName: #playerOne vs #playerTwo - #eventDate",
       playerTag: "توقعات  #playerName",
-      eventTag: "توقعات اتحاد لاعبي التنس المحترفين للتنس",
+      eventTag: "#eventName توقعات اتحاد لاعبي التنس المحترفين للتنس",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -833,7 +833,7 @@ const postTemplate = [
       categoryId: 9272,
       title: "#eventName の予測: #playerOne 対 #playerTwo - #eventDate",
       playerTag: "#playerName の予測",
-      eventTag: "ATPテニスの予想",
+      eventTag: "#eventName ATPテニスの予想",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -910,7 +910,7 @@ const postTemplate = [
       categoryId: 9273,
       title: "Прогнозы на #eventName: #playerOne против #playerTwo - #eventDate",
       playerTag: "Прогнозы #playerName",
-      eventTag: "Прогнозы ATP на теннис",
+      eventTag: "#eventName Прогнозы ATP на теннис",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -987,7 +987,7 @@ const postTemplate = [
       categoryId: 9274,
       title: "#eventName पूर्वानुमान: #playerOne बनाम #playerTwo - #eventDate",
       playerTag: "#playerName भविष्यवाणियाँ`",
-      eventTag: "एटीपी टेनिस भविष्यवाणियाँ",
+      eventTag: "#eventName एटीपी टेनिस भविष्यवाणियाँ",
       contents: function (eventName,
          leads,
          eventAddress,
@@ -1055,4 +1055,63 @@ const postTemplate = [
 ]
 
 
-module.exports = postTemplate;
+const postTemplateMs = [
+   {
+      language: "English",
+      languageCode: "en",
+      category: "WTA / ATP Tennis Predictions",
+      categoryId: 4339,
+      title: "Who Will Win #playerOneSurname vs #playerTwoSurname? Prediction For ATP #eventName #eventYear",
+      playerTag: "#playerName Predictions",
+      eventTag: "ATP #eventName Predictions",
+      contents: function (eventName,
+         leads,
+         eventAddress,
+         playerOne,
+         playerTwo,
+         eventDate,
+         eventHeading2,
+         eventRound,
+         eventDay,
+         paraphrasedBlog,
+         player1slug,
+         player2slug,
+         imgWrapper,
+         playerOneSurname,
+         playerTwoSurname,
+         eventYear,
+         plainEventName
+      ) {
+         
+         return `<div style="padding-bottom: 5px;">
+         <div style="display: flex; flex-direction: row;">${imgWrapper?.join("")}</div>
+
+         <br/>
+         <h3">What Time Will ${playerOne} Play Against ${playerOne}?</h3>
+         ${`<p>
+         ${playerOneSurname} and ${playerTwoSurname} are on the ${eventDay} Schedule at ${plainEventName} ${eventYear} on ${eventDate}. Lets breakdown the career, past stats and recent form of these players and predict who will get the victory.
+         </p>`.replace(/\n/g, " ")}
+         
+         
+         <br/> <br/>
+         <h3>Who Will Win In This Head-To-Head?</h3>
+         <p>${paraphrasedBlog && paraphrasedBlog?.replace(/^"|"$/g, '')}</p>
+
+         
+         <br/> <br/>
+         <h3>My Conclusion:</h3>
+         <p>
+            My pick is that ${playerOneSurname} will win. Matchstat.com has an Artificial Intelligence (Ai) prediction model that is trained on all professional ATP and WTA past matches. 
+            To find out who our model thinks will win for ${playerOne} vs ${playerTwo}, have a look here:
+            <br/>
+            <a href="https://matchstat.com/tennis/h2h-odds-bets/${player1slug}/${player2slug}/" target="_blank">
+               Matchstat.com ${playerOne} vs ${playerTwo} prediction.
+            </a> 
+         </p>
+         </div>
+         `
+      }
+   }
+];
+
+module.exports = { postTemplateSg, postTemplateMs };

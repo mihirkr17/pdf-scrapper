@@ -12,9 +12,15 @@ function getSurnameOfPlayer(fullName) {
    return nameParts[nameParts.length - 1];
 }
 
-function imgWrapper(arr, playerOneSurname, playerTwoSurname) {
+function imgWrapper(arr, playerOneSurname, playerTwoSurname, option) {
    return arr.map((item, index) => {
-      return (`<img src="${item?.sourceUrl}" title="${index === 0 ? playerOneSurname + " vs " + playerTwoSurname : playerTwoSurname + " vs " + playerOneSurname}" alt="${item?.slug}" style="flex: 1; width: 50%;" />`);
+      let title;
+      if (option === "sg") {
+         title = `${index === 0 ? playerOneSurname + " vs " + playerTwoSurname : playerTwoSurname + " vs " + playerOneSurname}`;
+      } else if (option === "ms") {
+         title = `${index === 0 ? "Will " + playerOneSurname + " win?" : "Will " + playerTwoSurname + " win?"}`;
+      }
+      return (`<img src="${item?.sourceUrl}" title="${title}" alt="${item?.slug}" style="flex: 1; width: 50%;" />`);
    });
 }
 
