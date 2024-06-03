@@ -29,7 +29,8 @@ const constant = {
    postUri: function (domain) {
       return `${domain}/wp-json/wp/v2/posts`;
    },
-   authorId: process.env.AUTHOR_ID,
+   authorIdSg: process.env.AUTHOR_ID_SG,
+   authorIdMs: process.env.AUTHOR_ID_MS,
    postStatus: process.env.POST_STATUS
 };
 

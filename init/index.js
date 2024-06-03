@@ -187,9 +187,9 @@ async function init(infos, mediaNoteUrls) {
                            paraphrasedBlog,
                            player1slug,
                            player2slug,
-                           imageWrapperHtml, 
-                           playerOneSurname, 
-                           playerTwoSurname, 
+                           imageWrapperHtml,
+                           playerOneSurname,
+                           playerTwoSurname,
                            eventYear, plainEventName);
 
                         consoleLogger(`Post creating...`);
@@ -198,7 +198,7 @@ async function init(infos, mediaNoteUrls) {
                            slug,
                            content: htmlContent,
                            status: constant?.postStatus,
-                           author: parseInt(constant?.authorId),
+                           author: parseInt(infos?.authorId),
                            tags: tagIds,
                            featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
                            categories: [categoryId]
