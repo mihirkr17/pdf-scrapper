@@ -163,7 +163,7 @@ async function init(infos, mediaNoteUrls) {
                         }
 
                         consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}. ${eventDay}`);
-                        consoleLogger("Tags generating...");
+                        consoleLogger(`Tags generating for ${[playerOneTag, playerTwoTag, eventTag]}`);
 
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri(infos?.domain), [playerOneTag, playerTwoTag, eventTag], token);
 
