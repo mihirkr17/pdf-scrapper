@@ -128,14 +128,14 @@ async function init() {
                   const imageWrapperHtml = imgWrapper([playerOneMedia, playerTwoMedia], playerOneSurname, playerTwoSurname);
 
                   await Promise.all(resources.map(async (resource) => {
-                     if (!resource?.categoryId || !resource?.category || !resource?.language) {
+                     if (!resource?.categoryId || !resource?.category || !resource?.language || !resource?.eventTag) {
                         return;
                      }
 
                      const categoryId = resource?.categoryId;
                      const playerOneTag = resource?.playerTag?.replace("#playerName", playerOne);
                      const playerTwoTag = resource?.playerTag?.replace("#playerName", playerTwo);
-                     const eventTag = eventName + " " + resource?.category;
+                     const eventTag = eventName + " " + resource?.eventTag;
 
                      try {
                         const [eventHeadingTwoTranslate, eventAddressTranslate, eventDayTranslate, eventDateTranslate] = await Promise.all([
