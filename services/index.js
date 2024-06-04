@@ -37,12 +37,10 @@ async function getPostTagIdsOfWP(url, tags, token) {
             const response = await xhrPostRequest(url, token, { name: tag });
 
             const result = response ? JSON.parse(response) : {};
-
-            if (result?.code === "term_exists") {
-               console.log(result?.data?.term_id);
+            console.log(result?.data, result);
+            if (result?.code === "term_exists") {    
                tagIds.push(result?.data?.term_id);
             } else {
-               console.log(result?.id);
                tagIds.push(result?.id);
             }
          } catch (error) {
