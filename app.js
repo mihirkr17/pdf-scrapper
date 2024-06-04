@@ -69,22 +69,24 @@ const { getPdfLinks } = require("./services");
          authToken: constant?.authTokenSg,
          authorId: constant?.authorIdSg,
          chatgptCommand: "Rewrite this in #language, not adding extra facts that are not in this text, reply in paragraph form, in an interesting tennis journalistic manner with a long as possible reply: #texts"
-      }, {
-         id: 2,
-         siteName: "https://www.matchstat.com/",
-         nick: "ms",
-         domain: constant?.domainMs,
-         authToken: constant?.authTokenMs,
-         authorId: constant?.authorIdMs,
-         chatgptCommand: 'With your reply in #language, including all facts in this text, rewrite "#texts"'
-      }];
+      },
+      //  {
+      //    id: 2,
+      //    siteName: "https://www.matchstat.com/",
+      //    nick: "ms",
+      //    domain: constant?.domainMs,
+      //    authToken: constant?.authTokenMs,
+      //    authorId: constant?.authorIdMs,
+      //    chatgptCommand: 'With your reply in #language, including all facts in this text, rewrite "#texts"'
+      // }
+   ];
 
 
       const currentYear = new Date().getFullYear();
 
       // Getting pdf first link
       let mediaNoteUrls = await getPdfLinks(constant?.atpNoteUri(currentYear));
-
+      
       const lengthOfMediaNoteLinks = mediaNoteUrls.length || 0;
 
       if (lengthOfMediaNoteLinks <= 0) {
@@ -92,11 +94,13 @@ const { getPdfLinks } = require("./services");
          return;
       }
 
+      mediaNoteUrls = mediaNoteUrls.slice(0, 1);
+
       consoleLogger(`Found ${lengthOfMediaNoteLinks} media note urls.`);
 
-      for (const site of sites.slice(0, 1)) {
+      for (const site of sites) {
          consoleLogger(`${site?.id}. Running ${site?.siteName}`);
-         const result = await init(site, mediaNoteUrls.slice(0, 1));
+         const result = await init(site, mediaNoteUrls);
 
          consoleLogger(`${result?.message} for ${site?.siteName}`);
       }
