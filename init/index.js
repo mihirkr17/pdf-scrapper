@@ -169,14 +169,14 @@ async function init(infos, mediaNoteUrls) {
                         consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}. ${eventDay}`);
                         consoleLogger(`Tags generating for ${playerOneTag}, ${playerTwoTag}, ${eventTag}`);
 
-                        const tagIds = await getPostTagIdsOfWP(constant?.tagUri(infos?.domain), [playerOneTag, playerTwoTag, eventTag], token);
+                        // const tagIds = await getPostTagIdsOfWP(constant?.tagUri(infos?.domain), [playerOneTag, playerTwoTag, eventTag], token);
 
-                        consoleLogger(`Tags generated. Ids: ${tagIds}`);
-                        if (!Array.isArray(tagIds) || tagIds.filter(e => e).length !== 3) {
-                           throw new Error(`Tag generating failed.`);
-                        }
+                        // consoleLogger(`Tags generated. Ids: ${tagIds}`);
+                        // if (!Array.isArray(tagIds) || tagIds.filter(e => e).length !== 3) {
+                        //    throw new Error(`Tag generating failed.`);
+                        // }
 
-                        consoleLogger(`Tags generated. Ids: ${tagIds}`);
+                        // consoleLogger(`Tags generated. Ids: ${tagIds}`);
 
                         await delay();
                         consoleLogger("Paraphrase starting...");
@@ -210,7 +210,7 @@ async function init(infos, mediaNoteUrls) {
                            content: htmlContent,
                            status: constant?.postStatus,
                            author: parseInt(infos?.authorId),
-                           tags: tagIds,
+                           // tags: tagIds,
                            featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
                            categories: [categoryId]
                         });
