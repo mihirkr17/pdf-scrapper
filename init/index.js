@@ -136,7 +136,7 @@ async function init(infos, mediaNoteUrls) {
                            translate(eventDate, { from: 'en', to: resource?.languageCode }),
                         ]);
 
-                      
+
 
                         let newTitle = "";
 
@@ -157,7 +157,7 @@ async function init(infos, mediaNoteUrls) {
 
                         const title = capitalizeFirstLetterOfEachWord(newTitle);
                         const slug = slugMaker(title);
-                      
+
                         const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(infos?.domain, slug), token);
 
                         if (isUniquePost) {
@@ -201,7 +201,7 @@ async function init(infos, mediaNoteUrls) {
                            eventYear, plainEventName);
 
                         consoleLogger(`Post creating...`);
-                        await createPostOfWP(constant?.postUri, token, {
+                        await createPostOfWP(constant?.postUri(infos?.domain), token, {
                            title,
                            slug,
                            content: htmlContent,
