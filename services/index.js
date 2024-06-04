@@ -39,12 +39,12 @@ async function getPostTagIdsOfWP(url, tags, token) {
             const result = response ? JSON.parse(response) : {};
 
             if (result?.code === "term_exists") {
+               console.log(result?.data?.term_id);
                tagIds.push(result?.data?.term_id);
             } else {
+               console.log(result?.id);
                tagIds.push(result?.id);
             }
-
-            await delay();
          } catch (error) {
             consoleLogger(`Error In getPostTagIdsOfWP: ${error?.message}`);
             throw new Error(`Error In getPostTagIdsOfWP: ${error?.message}`);
