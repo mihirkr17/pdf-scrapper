@@ -1085,19 +1085,14 @@ const postTemplateMs = [
          
          return `<div style="padding-bottom: 5px;">
          <div style="display: flex; flex-direction: row;">${imgWrapper?.join("")}</div>
-
          <br/>
-         <h3">What Time Will ${playerOne} Play Against ${playerOne}?</h3>
+         <h3">What Time Will ${playerOne} Play Against ${playerTwo}?</h3>
          ${`<p>
          ${playerOneSurname} and ${playerTwoSurname} are on the ${eventDay} Schedule at ${plainEventName} ${eventYear} on ${eventDate}. Lets breakdown the career, past stats and recent form of these players and predict who will get the victory.
          </p>`.replace(/\n/g, " ")}
-         
-         
          <br/> <br/>
          <h3>Who Will Win In This Head-To-Head?</h3>
          <p>${paraphrasedBlog && paraphrasedBlog?.replace(/^"|"$/g, '')}</p>
-
-         
          <br/> <br/>
          <h3>My Conclusion:</h3>
          <p>
