@@ -34,7 +34,6 @@ async function getPostTagIdsOfWP(url, tags, token) {
 
       for (const tag of tags) {
          try {
-            console.log(tag);
             const response = await xhrPostRequest(url, token, { name: tag });
 
             const result = response ? JSON.parse(response) : {};
