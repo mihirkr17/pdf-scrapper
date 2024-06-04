@@ -220,7 +220,7 @@ async function init(infos, mediaNoteUrls) {
                            content: htmlContent,
                            status: constant?.postStatus,
                            author: parseInt(infos?.authorId),
-                           // tags: tagIds,
+                           tags: tagIds,
                            featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
                            categories: [categoryId]
                         });
