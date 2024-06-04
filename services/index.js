@@ -28,7 +28,7 @@ async function checkExistingPostOfWP(url, token) {
 };
 
 async function getPostTagIdsOfWP(url, tags, token) {
-   console.log(url, tags, token);
+
    return retryOperation(async () => {
       const tagIds = [];
 
@@ -37,8 +37,6 @@ async function getPostTagIdsOfWP(url, tags, token) {
             const response = await xhrPostRequest(url, token, { name: tag });
 
             const result = response ? JSON.parse(response) : {};
-
-            console.log(result);
 
             if (result?.code === "term_exists") {
                tagIds.push(result?.data?.term_id);

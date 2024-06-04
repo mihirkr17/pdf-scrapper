@@ -170,8 +170,8 @@ async function init(infos, mediaNoteUrls) {
 
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri(infos?.domain), [playerOneTag, playerTwoTag, eventTag], token);
 
-                        if (!Array.isArray(tagIds)) {
-                           return;
+                        if (!Array.isArray(tagIds) || tagIds.length !== 3) {
+                           throw new Error(`Tag generating failed.`);
                         }
 
                         consoleLogger(`Tags generated. Ids: ${tagIds}`);
