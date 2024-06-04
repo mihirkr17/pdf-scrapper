@@ -204,7 +204,19 @@ async function init(infos, mediaNoteUrls) {
 
                         consoleLogger(`Post creating...`);
 
-                        console.log({
+                        // console.log({
+                        //    title,
+                        //    slug,
+                        //    content: htmlContent,
+                        //    status: constant?.postStatus,
+                        //    author: parseInt(infos?.authorId),
+                        //    // tags: tagIds,
+                        //    featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
+                        //    categories: [categoryId]
+                        // });
+
+
+                        await createPostOfWP(constant?.postUri(infos?.domain), token, {
                            title,
                            slug,
                            content: htmlContent,
@@ -214,19 +226,7 @@ async function init(infos, mediaNoteUrls) {
                            featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
                            categories: [categoryId]
                         });
-
-
-                        // await createPostOfWP(constant?.postUri(infos?.domain), token, {
-                        //    title,
-                        //    slug,
-                        //    content: htmlContent,
-                        //    status: constant?.postStatus,
-                        //    author: parseInt(infos?.authorId),
-                        //    tags: tagIds,
-                        //    featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
-                        //    categories: [categoryId]
-                        // });
-                        // consoleLogger(`Post created successfully.`);
+                        consoleLogger(`Post created successfully.`);
 
                         postCounter += 1;
                      } catch (error) {
