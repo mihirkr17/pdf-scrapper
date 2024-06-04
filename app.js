@@ -94,7 +94,7 @@ const { getPdfLinks } = require("./services");
 
       consoleLogger(`Found ${lengthOfMediaNoteLinks} media note urls.`);
 
-      for (const site of sites.slice(1, 2)) {
+      for (const site of sites.slice(0, 1)) {
          consoleLogger(`${site?.id}. Running ${site?.siteName}`);
          const result = await init(site, mediaNoteUrls.slice(0, 1));
 
