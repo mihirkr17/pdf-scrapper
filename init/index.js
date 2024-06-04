@@ -117,19 +117,18 @@ async function init(infos, mediaNoteUrls) {
 
                   const imageWrapperHtml = imgWrapper([playerOneMedia, playerTwoMedia], playerOneSurname, playerTwoSurname, infos?.nick);
 
-         
+
                   await Promise.all(resources.map(async (resource) => {
-                     if (!resource?.categoryId || !resource?.category || !resource?.language || !resource?.eventTag) {
-                        return;
-                     }
-
-                     const categoryId = resource?.categoryId;
-                     const playerOneTag = resource?.playerTag?.replace("#playerName", infos?.nick === "sg" ? playerOne : playerOneSurname);
-                     const playerTwoTag = resource?.playerTag?.replace("#playerName", infos?.nick === "sg" ? playerTwo : playerTwoSurname);
-                     const eventTag = resource?.eventTag?.replace("#eventName", infos?.nick === "sg" ? eventName : plainEventName);
-
-
                      try {
+                        if (!resource?.categoryId || !resource?.category || !resource?.language || !resource?.eventTag) {
+                           throw new Error("Something went wrong.");
+                        }
+
+                        const categoryId = resource?.categoryId;
+                        const playerOneTag = resource?.playerTag?.replace("#playerName", infos?.nick === "sg" ? playerOne : playerOneSurname);
+                        const playerTwoTag = resource?.playerTag?.replace("#playerName", infos?.nick === "sg" ? playerTwo : playerTwoSurname);
+                        const eventTag = resource?.eventTag?.replace("#eventName", infos?.nick === "sg" ? eventName : plainEventName);
+
                         const [eventHeadingTwoTranslate, eventAddressTranslate, eventDayTranslate, eventDateTranslate] = await Promise.all([
                            translate(eventHeadingTwo, { from: 'en', to: resource?.languageCode }),
                            translate(eventAddress, { from: 'en', to: resource?.languageCode }),
@@ -153,34 +152,35 @@ async function init(infos, mediaNoteUrls) {
                               ?.replace("#eventYear", eventYear);
                         }
 
-
                         const title = capitalizeFirstLetterOfEachWord(newTitle);
+                        consoleLogger(`S-${postCounter}. Post Title: ${title}.`);
                         const slug = slugMaker(title);
+                        consoleLogger(`S-${postCounter}. Post Slug: ${slug}.`);
 
                         const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(infos?.domain, slug), token);
 
+                        console.log(`Is Unique Post: ${isUniquePost}`);
                         if (isUniquePost) {
-                           consoleLogger(`Post already exist for ${slug}.`);
+                           consoleLogger(`S-${postCounter}. Post already exists.`);
                            return;
                         }
 
-                        consoleLogger(`Starting post for ${resource?.language}. Slug: ${slug}. ${eventDay}`);
-                        consoleLogger(`Tags generating for ${playerOneTag}, ${playerTwoTag}, ${eventTag}`);
+                        consoleLogger(`S-${postCounter}. Post language: ${resource?.language}.`);
+                        consoleLogger(`S-${postCounter}. Event Day: ${eventDay}.`);
+                        consoleLogger(`S-${postCounter}. Tags generating for ${playerOneTag}, ${playerTwoTag}, ${eventTag}`);
 
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri(infos?.domain), [playerOneTag, playerTwoTag, eventTag], token);
 
-                        consoleLogger(`Tags generated. Ids: ${tagIds}`);
                         if (!Array.isArray(tagIds) || tagIds.filter(e => e).length !== 3) {
-                           throw new Error(`Tag generating failed.`);
+                           throw new Error(`S-${postCounter}. Tag generation failed. Terminate the request.`);
                         }
 
-                        consoleLogger(`Tags generated. Ids: ${tagIds}`);
+                        consoleLogger(`S-${postCounter}. Tags generated. Tag Id's: ${tagIds}`);
 
-                        await delay();
-                        consoleLogger("Paraphrase starting...");
+                        consoleLogger(`S-${postCounter}. Paraphrase starting...`);
                         const chatgptCommand = infos?.chatgptCommand?.replace("#language", resource?.language)?.replace("#texts", text);
                         const paraphrasedBlog = await paraphraseContents(chatgptCommand);
-                        consoleLogger("Paraphrased done.");
+                        consoleLogger(`S-${postCounter}. Paraphrased done.`);
 
                         const htmlContent = resource?.contents(
                            eventName,
@@ -200,20 +200,7 @@ async function init(infos, mediaNoteUrls) {
                            playerTwoSurname,
                            eventYear, plainEventName);
 
-                        consoleLogger(`Post creating...`);
-
-                        // console.log({
-                        //    title,
-                        //    slug,
-                        //    content: htmlContent,
-                        //    status: constant?.postStatus,
-                        //    author: parseInt(infos?.authorId),
-                        //    // tags: tagIds,
-                        //    featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
-                        //    categories: [categoryId]
-                        // });
-
-
+                        consoleLogger(`S-${postCounter}. Post creating...`);
                         await createPostOfWP(constant?.postUri(infos?.domain), token, {
                            title,
                            slug,
@@ -224,11 +211,11 @@ async function init(infos, mediaNoteUrls) {
                            featured_media: playerOneMedia?.mediaId || playerTwoMedia?.mediaId,
                            categories: [categoryId]
                         });
-                        consoleLogger(`Post created successfully.`);
+                        consoleLogger(`S-${postCounter}. Post created successfully.`);
 
                         postCounter += 1;
                      } catch (error) {
-                        consoleLogger(`Error In Resource Model: ${error?.message}.`);
+                        consoleLogger(`S-${postCounter}. Error In Resource Model: ${error?.message}.`);
                         await delay(1000);
                      }
                   }));
