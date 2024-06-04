@@ -117,6 +117,7 @@ async function init(infos, mediaNoteUrls) {
 
                   const imageWrapperHtml = imgWrapper([playerOneMedia, playerTwoMedia], playerOneSurname, playerTwoSurname, infos?.nick);
 
+                  console.log(playerOneMedia, playerTwoMedia);
                   await Promise.all(resources.map(async (resource) => {
                      if (!resource?.categoryId || !resource?.category || !resource?.language || !resource?.eventTag) {
                         return;
