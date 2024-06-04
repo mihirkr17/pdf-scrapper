@@ -91,7 +91,7 @@ async function init(infos, mediaNoteUrls) {
                const leads = content?.leads;
                const playerOneSurname = getSurnameOfPlayer(playerOne);
                const playerTwoSurname = getSurnameOfPlayer(playerTwo);
-               const yearMatch = eventDate.match(/\d{4}/);
+               const yearMatch = eventDate?.match(/\d{4}/);
                const eventYear = yearMatch ? yearMatch[0] : new Date().getFullYear();
                const plainEventName = eventName?.replace(/\d/g, '')?.trim();
 
@@ -136,8 +136,6 @@ async function init(infos, mediaNoteUrls) {
                            translate(eventDay, { from: 'en', to: resource?.languageCode }),
                            translate(eventDate, { from: 'en', to: resource?.languageCode }),
                         ]);
-
-
 
                         let newTitle = "";
 

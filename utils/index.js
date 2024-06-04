@@ -211,14 +211,16 @@ function extractMatchInfo(text) {
    // let reg2 = /Page \d+ of \d+/gi;
 
    // console.log(text?.replace(/@ATPMediaInfo[\s\S]*?Page \d+ of \d+/gi, "")?.split("\n"));
-   const splittedTexts = text?.split("\n"); //?.filter(e => !regddd.test(e))?.filter(e => !reg2.test(e));
+   const splittedTexts = text?.split("\n")?.filter(e => e?.trim().length !== 0); //?.filter(e => !regddd.test(e))?.filter(e => !reg2.test(e));
 
    let mainResult = "", startRecording = false, headRecord = false;
 
 
-   let dayDateString;
+   // console.log(splittedTexts);
+   let dateString;
    let placeString;
    let eventNameString;
+   let eventDayString = "";
 
    for (let i = 0; i < splittedTexts.length; i++) {
 
@@ -229,8 +231,14 @@ function extractMatchInfo(text) {
          eventNameString = line;
       }
 
-      if ((/(DAY \d MEDIA NOTES | \DAY \d)/g).test(line)) {
-         dayDateString = line;
+      if ((/(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)[, -]? \d+ [A-Z][a-z]+ \d{4}/i).test(line)) {
+         let dates = line.match(/[A-Z][a-z]+ \d+ [A-Z][a-z]+ \d{4}/);
+         dateString = dates[0];
+      }
+
+      if ((/DAY \d+/).test(line)) {
+         let day = line.match(/DAY \d+/);
+         eventDayString = day[0];
       }
 
       if ((/(France|Switzerland|Argentina|Australia|Austria|Belgium|Brazil|Canada|China|Croatia|Germany|India|Italy|Japan|Mexico|Morocco|Netherlands|New Zealand|Portugal|Qatar|Russia|Spain|Sweden|UAE|United Kingdom|United States) \|/i).test(line)) {
@@ -268,10 +276,9 @@ function extractMatchInfo(text) {
       // }
    }
 
-
    // new variables
-   const eventDay = dayDateString?.trim().match(/DAY \d/)[0];
-   const eventDate = dayDateString?.trim().match(/([A-Za-z]+) (\d{1,2}) ([A-Za-z]+) (\d{4})/)[0];
+   const eventDay = eventDayString;
+   const eventDate = dateString;
    placeString = placeString?.split(" | ");
    const eventAddress = placeString?.slice(0, placeString.length - 1)?.join(", ");
    const eventName = eventNameString?.split(/[–|-]/)[0];
