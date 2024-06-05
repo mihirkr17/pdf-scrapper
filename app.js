@@ -80,7 +80,7 @@ const { getPdfLinks } = require("./services");
             siteName: "https://www.matchstat.com/",
             nick: "ms",
             domain: constant?.domainMs,
-            authToken: constant?.authTokenMs,
+            authToken: Buffer.from(`JamesMorris365:h2EE Q0HA pD2l xdGe Ct6M xBQu`, "utf8").toString("base64"), //constant?.authTokenMs,
             authorId: constant?.authorIdMs,
             chatgptCommand: 'With your reply in #language, including all facts in this text, rewrite "#texts"'
          }

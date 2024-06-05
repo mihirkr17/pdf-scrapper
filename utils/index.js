@@ -121,7 +121,7 @@ async function readFileAsynchronously(fileName, type = "text") {
 // Post request wrapper
 async function xhrPostRequest(url, token = "", body = {}, type = "text") {
    try {
-      console.log("Request: " + url + ", " + token + ", " + body);
+      console.log("Request: " + url + ", " + token + ", " + body?.name);
       const response = await fetch(url, {
          method: "POST",
          headers: {
