@@ -36,10 +36,8 @@ async function getPostTagIdsOfWP(url, tags, token) {
          try {
             const response = await xhrPostRequest(url, token, { name: tag });
 
-            // console.log("Data Response: " + response);
-
             const result = response ? JSON.parse(response) : {};
-            console.log("Data Response: " + result?.code);
+
             if (result?.code === "term_exists") {    
                tagIds.push(result?.data?.term_id);
             } else {
@@ -50,8 +48,8 @@ async function getPostTagIdsOfWP(url, tags, token) {
             throw new Error(`Error In getPostTagIdsOfWP: ${error?.message}`);
          }
       }
-      return tagIds;
-   })();
+      return tagIds?.filter(e => e);
+   }, 12)();
 }
 
 

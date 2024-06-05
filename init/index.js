@@ -171,7 +171,7 @@ async function init(infos, mediaNoteUrls) {
 
                         const tagIds = await getPostTagIdsOfWP(constant?.tagUri(infos?.domain), [playerOneTag, playerTwoTag, eventTag], token);
 
-                        if (!Array.isArray(tagIds) || tagIds.filter(e => e).length !== 3) {
+                        if (!Array.isArray(tagIds) || tagIds.length !== 3) {
                            throw new Error(`S-${postCounter}. Tag generation failed. Terminate the request.`);
                         }
 
