@@ -33,6 +33,10 @@ const { getPdfLinks } = require("./services");
 
 (async () => {
    try {
+
+
+      // console.log(Buffer.from(`JamesMorris365:h2EE Q0HA pD2l xdGe Ct6M xBQu`, "utf8").toString("base64"));
+
       if (!constant?.postStatus || !constant?.postStatusAll.includes(constant?.postStatus)) {
          throw new Error(`ERROR: Post status must be set as "POST_STATUS=publish or future or draft or pending or private" in .env`);
       }

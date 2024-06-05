@@ -129,6 +129,8 @@ async function xhrPostRequest(url, token = "", body = {}, type = "text") {
          },
          body: JSON.stringify(body)
       });
+
+      console.log("Response Is: " + response);
       return type === "json" ? await response.json() : await response.text();
    } catch (error) {
       throw error;
