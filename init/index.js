@@ -76,6 +76,8 @@ async function init(infos, mediaNoteUrls) {
 
             consoleLogger(`Pdf downloaded and extracted contents successfully.`);
 
+            console.log(contents);
+            return
             for (const content of contents) {
                const playerOne = content?.player1;
                const playerTwo = content?.player2;

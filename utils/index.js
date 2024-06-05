@@ -217,6 +217,8 @@ function extractMatchInfo(text) {
 
 
    // console.log(splittedTexts);
+
+   // console.log(splittedTexts);
    let dateString;
    let placeString;
    let eventNameString;
@@ -227,7 +229,7 @@ function extractMatchInfo(text) {
       const line = splittedTexts[i].trim(); //?.replace(/@ATPMediaInfo.*For the latest stats/g, "")?.replace(/Page \d of \d/gi, "");
 
 
-      if ((/(ATP MEDIA NOTES|\d ROLAND GARROS)/).test(line)) {
+      if ((/(ATP MEDIA NOTES|\d{4} ROLAND GARROS(?:\s\w*)?$)/).test(line)) {
          eventNameString = line;
       }
 
@@ -275,6 +277,7 @@ function extractMatchInfo(text) {
       //    eventHeader.eventAddress = addressLine ? addressLine?.split(" | ").slice(0, -1).join(", ").trim() : "";
       // }
    }
+
 
    // new variables
    const eventDay = eventDayString;

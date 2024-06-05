@@ -101,6 +101,7 @@ const { getPdfLinks } = require("./services");
 
       mediaNoteUrls = mediaNoteUrls.slice(0, 1);
 
+
       consoleLogger(`Found ${lengthOfMediaNoteLinks} media note urls.`);
 
       for (const site of sites) {
