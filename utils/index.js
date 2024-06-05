@@ -121,6 +121,7 @@ async function readFileAsynchronously(fileName, type = "text") {
 // Post request wrapper
 async function xhrPostRequest(url, token = "", body = {}, type = "text") {
    try {
+      console.log("Request: " + url + ", " + token + ", " + body);
       const response = await fetch(url, {
          method: "POST",
          headers: {
@@ -130,7 +131,7 @@ async function xhrPostRequest(url, token = "", body = {}, type = "text") {
          body: JSON.stringify(body)
       });
 
-      console.log("Response Is: " + response);
+      console.log("Response Is: " + response?.status + ", " + response?.ok);
       return type === "json" ? await response.json() : await response.text();
    } catch (error) {
       throw error;
