@@ -159,7 +159,6 @@ async function init(infos, mediaNoteUrls) {
 
                         const isUniquePost = await checkExistingPostOfWP(constant?.postExistUri(infos?.domain, slug), token);
 
-           console.log(isUniquePost);
                         if (isUniquePost) {
                            consoleLogger(`S-${postCounter}. Post already exists.`);
                            return;

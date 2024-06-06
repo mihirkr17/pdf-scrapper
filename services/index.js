@@ -21,11 +21,15 @@ async function getPdfLinks(url) {
 }
 
 async function checkExistingPostOfWP(url, token) {
-   console.log(url);
    return retryOperation(async () => {
       const data = await xhrGetRequest(url, token, "json");
-      console.log(data);
+
+      if (!Array.isArray(data)) {
+         throw new Error(`Something went wrong.`);
+      }
+
       return data.length >= 1;
+
    })();
 };
 
@@ -42,7 +46,7 @@ async function getPostTagIdsOfWP(url, tags, token) {
 
             const result = response ? JSON.parse(response) : {};
 
-            if (result?.code === "term_exists") {    
+            if (result?.code === "term_exists") {
                tagIds.push(result?.data?.term_id);
             } else {
                tagIds.push(result?.id);
