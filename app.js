@@ -66,24 +66,24 @@ const { getPdfLinks } = require("./services");
 
 
       const sites = [
-            {
-            id: 1,
-            siteName: "https://www.stevegtennis.com/",
-            nick: "sg",
-            domain: constant?.domainSg,
-            authToken: constant?.authTokenSg,
-            authorId: constant?.authorIdSg,
-            chatgptCommand: "Rewrite this in #language, not adding extra facts that are not in this text, reply in paragraph form, in an interesting tennis journalistic manner with a long as possible reply: #texts"
-         },
-         // {
-         //    id: 2,
-         //    siteName: "https://www.matchstat.com/",
-         //    nick: "ms",
-         //    domain: constant?.domainMs,
-         //    authToken: Buffer.from(`JamesMorris365:h2EE Q0HA pD2l xdGe Ct6M xBQu`, "utf8").toString("base64"), //constant?.authTokenMs,
-         //    authorId: constant?.authorIdMs,
-         //    chatgptCommand: 'With your reply in #language, including all facts in this text, rewrite "#texts"'
-         // }
+         //    {
+         //    id: 1,
+         //    siteName: "https://www.stevegtennis.com/",
+         //    nick: "sg",
+         //    domain: constant?.domainSg,
+         //    authToken: constant?.authTokenSg,
+         //    authorId: constant?.authorIdSg,
+         //    chatgptCommand: "Rewrite this in #language, not adding extra facts that are not in this text, reply in paragraph form, in an interesting tennis journalistic manner with a long as possible reply: #texts"
+         // },
+         {
+            id: 2,
+            siteName: "https://www.matchstat.com/",
+            nick: "ms",
+            domain: constant?.domainMs,
+            authToken: Buffer.from(`JamesMorris365:h2EE Q0HA pD2l xdGe Ct6M xBQu`, "utf8").toString("base64"), //constant?.authTokenMs,
+            authorId: constant?.authorIdMs,
+            chatgptCommand: 'With your reply in #language, including all facts in this text, rewrite "#texts"'
+         }
       ];
 
 
@@ -99,7 +99,8 @@ const { getPdfLinks } = require("./services");
          return;
       }
 
-      mediaNoteUrls = mediaNoteUrls.slice(0, 1);
+      // changed
+      mediaNoteUrls = mediaNoteUrls.slice(1, 2);
 
 
       consoleLogger(`Found ${lengthOfMediaNoteLinks} media note urls.`);

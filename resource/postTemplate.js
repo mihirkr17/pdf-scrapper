@@ -1155,7 +1155,7 @@ const postTemplateSg = [
                </picture>
             </a>
          </p>
-         <br/>
+      <br/>
       
       <h3>${playerOne} बनाम ${playerTwo} आमने-सामने, पूर्वावलोकन, आँकड़े और चयन:</h3>
       <article>
