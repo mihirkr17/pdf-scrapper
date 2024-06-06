@@ -5,13 +5,13 @@ const constant = {
    domainSg: process.env.CLIENT_DOMAIN_SG,
    domainMs: process.env.CLIENT_DOMAIN_MS,
    mediaUri: function (domain, slug) {
-      return `${domain}/wp-json/wp/v2/media?slug=${slug}_yes`;
+      return `${domain}/wp-json/wp/v2/media?slug=${slug}_yes&sdfdsf=jbj`;
    },
    pdfUri: function (pdfLink) {
       return `https://www.atptour.com${pdfLink}`;
    },
    tagUri: function (domain) {
-      return `${domain}/wp-json/wp/v2/tags`;
+      return `${domain}/wp-json/wp/v2/tags?sdfdsf=jbj&sdfdsf=jbj`;
    },
    categoryUri: function (domain) {
       return `${domain}/wp-json/wp/v2/categories`;
@@ -20,7 +20,7 @@ const constant = {
       return `https://www.atptour.com/en/media/daily-media-notes?year=${year}`;
    },
    postExistUri: function (domain, slug = "") {
-      return `${domain}/wp-json/wp/v2/posts?status=any&slug=${slug}`;
+      return `${domain}/wp-json/wp/v2/posts?status=any&slug=${slug}&sdfdsf=jbj`;
    },
    paraphrasedCommand: function (language, content) {
       return `Rewrite this in ${language}, not adding extra facts that are not in this text, reply in paragraph form, in an interesting tennis journalistic manner with a long as possible reply: ${content}`;
